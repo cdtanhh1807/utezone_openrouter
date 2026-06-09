@@ -1,0 +1,72 @@
+.ai-side {
+  width: 100%;
+  margin: 14px 0;
+}
+
+.ai-btn {
+  width: 100%;
+
+  border: none;
+  outline: none;
+
+  padding: 13px 18px;
+  border-radius: 18px;
+
+  /* nền nhẹ kiểu AI */
+  background: transparent;
+
+  /* text tím */
+  color: linear-gradient(135deg, transparent, #2563eb);
+
+  font-weight: 600;
+
+  transition: all 0.3s ease;
+
+  position: relative;
+  overflow: hidden;
+
+  /* 🔥 không click được */
+  pointer-events: none;
+
+  /* 🔥 không hiện bàn tay */
+  cursor: default;
+
+  /* 🔥 không select text */
+  user-select: none;
+
+}
+
+.ai-btn-content {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  position: relative;
+  z-index: 2;
+}
+
+.ai-btn.loading {
+  animation: pulseGlow 1.5s infinite;
+}
+
+.ai-btn.success {
+
+  color: linear-gradient(135deg, transparent, #2563eb);
+
+  border: none;
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 rgba(124, 58, 237, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.6);
+  }
+
+  100% {
+    box-shadow: 0 0 0 rgba(124, 58, 237, 0.3);
+  }
+}
