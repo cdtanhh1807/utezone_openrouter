@@ -4,9 +4,8 @@
   left: 0;
   height: 100vh;
   width: 18%;
-  border-right: 1px solid #999999;
-  background-color: rgb(250 250, 250);
   
+  background-color: #fff;
 }
 
 .logoPart {

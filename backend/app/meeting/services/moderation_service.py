@@ -15,7 +15,7 @@ from meeting.websocket.manager import ws_manager
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 TEXT_MODEL = os.getenv(
     "TEXT_MODEL",
-    "z-ai/glm-4.5-air:free",
+    "google/gemini-2.5-flash-lite",
 )
 VISION_MODEL = os.getenv(
     "VISION_MODEL",

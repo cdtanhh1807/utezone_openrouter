@@ -6,6 +6,7 @@ import FileService from "../../../../services/FileService";
 import { ToastService } from "../../../../services/ToastService";
 import MusicTrimBar from "./MusicTrimBar";
 import { toast } from "react-toastify";
+import { useAIStore } from "../stores/aiStore";
 
 interface CreateStoryProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export default function CreateStory({
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
   const [fileId, setFileId] = useState<string>("");
+const [tempUrlVideo, setTempUrlVideo] = useState<File | null>(null);
 
   /** VIDEO TRIM DATA */
   const [videoStartAt, setVideoStartAt] = useState(0);
@@ -60,6 +62,7 @@ export default function CreateStory({
   const videoRefStep1 = useRef<HTMLVideoElement | null>(null);
   const videoRefStep2 = useRef<HTMLVideoElement | null>(null);
   const musicRef = useRef<HTMLAudioElement | null>(null);
+  const { setStatus } = useAIStore();
 
   // STEP 0 — chọn media
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,7 +82,9 @@ export default function CreateStory({
       };
     }
 
-    const res = await FileService.uploadPicture(f);
+    const res = await FileService.uploadFromCrawl(f);
+
+    setTempUrlVideo(f)
     setFileId(res.file_id);
 
     if (f.type.startsWith("video/")) setStep(1);
@@ -114,7 +119,7 @@ export default function CreateStory({
       audio.play();
     };
 
-    const res = await FileService.uploadPicture(f);
+    const res = await FileService.uploadFromCrawl(f);
     setMusicFileId(res.file_id);
 
     setShowMusicTrim(true);
@@ -233,19 +238,25 @@ export default function CreateStory({
 
   /** Đăng story */
   const handleStory = async () => {
+
+    onClose();
+
     if (!currentUser || !fileId) {
       ToastService.warning("Vui lòng chọn ảnh hoặc video");
       return;
     }
 
     try {
+
+      setStatus("moderating");
+      const res = await FileService.uploadPicture(tempUrlVideo!);
       const payload = {
         createdBy: currentUser,
         createdAt: new Date().toISOString(),
         mediaType: file?.type.startsWith("image/") ? "image" : "video",
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
-        mediaUrls: [fileId],
-        thumbnails: [fileId],
+        mediaUrls: [res.file_id],
+        thumbnails: [res.file_id],
         textLayers: textLayers.map((t) => ({
           text: t.text,
           x: t.x,
@@ -274,13 +285,16 @@ export default function CreateStory({
 
       await StoryService.addStory(payload);
       await onStoryCreated?.();
+      setStatus("success");
       ToastService.success("Đăng tin thành công!");
       setTimeout(() => {
+        setStatus("idle");
         window.location.reload();
       }, 500);
 
       onClose();
     } catch (err) {
+      setStatus("idle");
       console.error(err);
       ToastService.error("Đăng tin thất bại, vui lòng thử lại");
     }
@@ -476,7 +490,7 @@ export default function CreateStory({
                 )}
 
                 <button className="post-btn-fixed" onClick={handleStory}>
-                  Đăng tin
+                  Đăng
                 </button>
               </div>
             )}

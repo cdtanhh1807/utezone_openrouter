@@ -115,7 +115,10 @@ const ReportManager: React.FC = () => {
   // modal PostDetail
   const [isPostDetailOpen, setIsPostDetailOpen] = useState(false);
   const [activePost, setActivePost] = useState<any>(null);
-  const [focusCommentId, setFocusCommentId] = useState<string | null>(null);
+  const [focusComment, setFocusComment] = useState<{
+  commentId: string;
+  path?: string | null;
+} | null>(null);
 
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const showToast = (msg: string, ok: boolean) => {
@@ -324,7 +327,14 @@ const ReportManager: React.FC = () => {
       console.log("Active post set kkkkkkk kl:", activePost);
 
       // Nếu report là comment, focus vào comment đó
-      setFocusCommentId(r.typeContent === "comment" ? r.contentId : null);
+      setFocusComment(
+  r.typeContent === "comment"
+    ? {
+        commentId: r.contentId!,
+        path: r.path,
+      }
+    : null
+);
 
       setIsPostDetailOpen(true);
     } catch (err) {
@@ -717,7 +727,7 @@ const ReportManager: React.FC = () => {
       {isPostDetailOpen && activePost && (
         <PostDetail
           activePost={activePost}
-          focusCommentId={focusCommentId}
+          focusComment={focusComment}
           onClose={() => setIsPostDetailOpen(false)}
           onCommentAdded={async (postId) => {
             // nếu muốn reload báo cáo sau khi thêm comment

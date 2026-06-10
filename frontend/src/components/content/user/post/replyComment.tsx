@@ -15,6 +15,7 @@ interface ReplyCommentProps {
   postId: string;
   parentId: string;
   userInfoMap: Record<string, { fullName: string; avatar?: string }>;
+  focusReplyId?: string;
   refreshTrigger?: number;
   onReplyDeleted?: () => void;
   onReply: (reply: CommentReply) => void;
@@ -166,6 +167,7 @@ export default function ReplyComment({
   postId,
   parentId,
   userInfoMap,
+  focusReplyId,
   refreshTrigger,
   onReply,
   onReplyDeleted,
@@ -237,6 +239,32 @@ export default function ReplyComment({
   useEffect(() => {
     fetchReplies();
   }, [postId, parentId, refreshTrigger]);
+
+  useEffect(() => {
+    if (!focusReplyId) return;
+    if (!replies.length) return;
+
+    const target = replies.find((r) => r.commentId === focusReplyId);
+
+    if (!target) return;
+
+    setTimeout(() => {
+      const el = document.getElementById(`comment-${focusReplyId}`);
+
+      if (!el) return;
+
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      el.classList.add("highlight-comment");
+
+      setTimeout(() => {
+        el.classList.remove("highlight-comment");
+      }, 3000);
+    }, 200);
+  }, [focusReplyId, replies]);
 
   const normalizeReact = (react: Record<string, string[]>): CommentReact => ({
     love: react.love || [],

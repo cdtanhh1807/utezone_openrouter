@@ -20,6 +20,18 @@ const SearchSide = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    const container = document.querySelector(
+      ".main-right-side",
+    ) as HTMLElement | null;
+
+    container?.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
+  }, [keyword]);
+
+  useEffect(() => {
     if (!keyword) return;
 
     const fetchData = async () => {
@@ -77,9 +89,7 @@ const SearchSide = () => {
         {loading ? (
           <p>Đang tải...</p>
         ) : tab === "posts" ? (
-          <SearchPost
-            posts={postResults}
-          />
+          <SearchPost posts={postResults} />
         ) : (
           <SearchUser users={userResults} />
         )}

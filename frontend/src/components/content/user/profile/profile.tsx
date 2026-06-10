@@ -50,12 +50,12 @@ function Profile() {
     }
   }
 
-    const { list, loading, refetch } = useConversations();
-  
-    // ✅ Tính số tin chưa đọc (an toàn + tối ưu)
-    const unreadCount = useMemo(() => {
-      return list?.filter((c) => c.has_new).length || 0;
-    }, [list]);
+  const { list, loading, refetch } = useConversations();
+
+  // ✅ Tính số tin chưa đọc (an toàn + tối ưu)
+  const unreadCount = useMemo(() => {
+    return list?.filter((c) => c.has_new).length || 0;
+  }, [list]);
   useEffect(() => {
     if (!openMessage) return;
 
@@ -64,7 +64,11 @@ function Profile() {
         setOpenMessage(false);
       }
     };
-    console.log("Đã thêm event listener cho click outside chat, email:", email, currentUserEmail);
+    console.log(
+      "Đã thêm event listener cho click outside chat, email:",
+      email,
+      currentUserEmail,
+    );
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openMessage]);
@@ -80,85 +84,60 @@ function Profile() {
           <ProfileHeader email={email} />
         </div>
 
-        <div className="storyBlock-profile">
-          <StoryBlock />
-        </div>
-
-        {/* ===== TAB ===== */}
-        <div className="profile-tabs">
-          <button
-            className={activeTab === "posts" ? "active" : ""}
-            onClick={() => setActiveTab("posts")}
-          >
-            <ArticleOutlinedIcon />
-          </button>
-
-          <button
-            className={activeTab === "album" ? "active" : ""}
-            onClick={() => setActiveTab("album")}
-          >
-            <PhotoLibraryOutlinedIcon />
-          </button>
-
-          {email === currentUserEmail && (
-            <button
-              className={activeTab === "archived" ? "active" : ""}
-              onClick={() => setActiveTab("archived")}
-            >
-              <Inventory2OutlinedIcon />
-            </button>
-          )}
-
-          <button
-            className={activeTab === "saved" ? "active" : ""}
-            onClick={() => setActiveTab("saved")}
-          >
-            <BookmarkBorderIcon />
-          </button>
-
-          <button
-            className={activeTab === "catalog" ? "active" : ""}
-            onClick={() => setActiveTab("catalog")}
-          >
-            <EventIcon />
-          </button>
-        </div>
-
-        {/* ===== CONTENT ===== */}
-        <div className="p-post">
-          {activeTab === "posts" && <ProfilePosts email={email} />}
-          {activeTab === "album" && <ProfileAlbum email={email} />}
-          {activeTab === "archived" && <ProfileArchived />}
-          {activeTab === "saved" && <ProfileSaved email={email} />}
-          {activeTab === "catalog" && <ProfileCatalog />}
-        </div>
-      </div>
-
-      {/* ===== RIGHT SIDE ===== */}
-      <div className="rightSide">
-        {/* <button
-        className="floating-ribbon"
-        onClick={() => setOpenMessage(true)}
-      >
-        <img src={logochat} alt="Chat" />
-
-        {!loading && unreadCount > 0 && (
-          <span className="chat-badge">
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </span>
-        )}
-      </button> */}
-
-        {/* ====== CHAT BOX ====== */}
-        {openMessage && (
-          <div ref={boxRef} className="chat-fixed">
-            <ChatDialog
-              onClose={() => setOpenMessage(false)}
-              list={list}
-              refetch={refetch}
-            />
+        <div className="profile-body">
+          <div className="storyBlock-profile">
+            <StoryBlock />
           </div>
-        )}
+
+          {/* ===== TAB ===== */}
+          <div className="profile-tabs">
+            <button
+              className={activeTab === "posts" ? "active" : ""}
+              onClick={() => setActiveTab("posts")}
+            >
+              <ArticleOutlinedIcon />
+            </button>
+
+            <button
+              className={activeTab === "album" ? "active" : ""}
+              onClick={() => setActiveTab("album")}
+            >
+              <PhotoLibraryOutlinedIcon />
+            </button>
+
+            {email === currentUserEmail && (
+              <button
+                className={activeTab === "archived" ? "active" : ""}
+                onClick={() => setActiveTab("archived")}
+              >
+                <Inventory2OutlinedIcon />
+              </button>
+            )}
+
+            <button
+              className={activeTab === "saved" ? "active" : ""}
+              onClick={() => setActiveTab("saved")}
+            >
+              <BookmarkBorderIcon />
+            </button>
+
+            <button
+              className={activeTab === "catalog" ? "active" : ""}
+              onClick={() => setActiveTab("catalog")}
+            >
+              <EventIcon />
+            </button>
+          </div>
+
+          {/* ===== CONTENT ===== */}
+          <div className="p-post">
+            {activeTab === "posts" && <ProfilePosts email={email} />}
+            {activeTab === "album" && <ProfileAlbum email={email} />}
+            {activeTab === "archived" && <ProfileArchived />}
+            {activeTab === "saved" && <ProfileSaved email={email} />}
+            {activeTab === "catalog" && <ProfileCatalog />}
+          </div>
+        </div>
       </div>
     </div>
   );

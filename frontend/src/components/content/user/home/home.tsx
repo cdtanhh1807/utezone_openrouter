@@ -11,6 +11,20 @@ function Home() {
   const isSearching = location.pathname === "/search";
 
   useEffect(() => {
+  if (isSearching) {
+    const container = document.querySelector(
+      ".main-right-side"
+    ) as HTMLElement | null;
+
+    container?.scrollTo({
+      top: 0,
+      behavior: "auto",
+    });
+  }
+}, [isSearching, location.search]);
+
+
+  useEffect(() => {
     if (location.state?.fromLogin) {
       // 🧹 Xóa state để tránh loop
       navigate(location.pathname, { replace: true, state: {} });

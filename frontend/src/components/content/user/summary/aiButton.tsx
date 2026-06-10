@@ -48,7 +48,7 @@ const AIActionButton = () => {
               <span>
                 {status === "summarizing"
                   ? "UTEZone AI đang tóm tắt bài viết..."
-                  : "UTEZone AI đang kiểm duyệt bài viết..."}
+                  : "UTEZone AI đang kiểm duyệt nội dung..."}
               </span>
             </>
           ) : status === "success" ? (

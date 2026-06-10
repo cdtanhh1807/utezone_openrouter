@@ -41,6 +41,10 @@ interface DetailPostProps {
   onOpenOriginalPost: (postId: string) => void;
   onPostDeleted?: (postId: string) => void; // ← thêm dòng này
   onActivePostUpdate?: (post: Post) => void;
+  focusComment?: {
+    commentId: string;
+    path?: string | null;
+  } | null;
 }
 
 const PostDetail: React.FC<DetailPostProps> = ({
@@ -51,6 +55,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
   onOpenOriginalPost,
   onPostDeleted, // ← nhận prop mới
   onActivePostUpdate,
+  focusComment,
 }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [userInfoMap, setUserInfoMap] = useState<Record<string, UserInfo>>({});
@@ -326,6 +331,32 @@ const PostDetail: React.FC<DetailPostProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [postMenuOpen]);
+
+  useEffect(() => {
+    if (!focusComment) return;
+
+    const rootCommentId = focusComment.path?.split(";")[0];
+
+    if (!rootCommentId) return;
+
+    setOpenReplyMap((prev) => ({
+      ...prev,
+      [rootCommentId]: true,
+    }));
+  }, [focusComment]);
+
+  useEffect(() => {
+    if (!focusComment?.path) return;
+
+    const rootCommentId = focusComment.path.split(";")[0];
+
+    const rootEl = document.getElementById(`comment-${rootCommentId}`);
+
+    rootEl?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, [focusComment]);
 
   const handleReact = async (
     postId: string,
@@ -1939,6 +1970,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
                                     postId={activePost._id}
                                     parentId={comment.commentId}
                                     userInfoMap={userInfoMap}
+                                    focusReplyId={focusComment?.commentId}
                                     refreshTrigger={replyRefresh}
                                     onReplyDeleted={() => {
                                       setReplyCountMap((prev) => ({

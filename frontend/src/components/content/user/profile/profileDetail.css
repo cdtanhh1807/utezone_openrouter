@@ -34,18 +34,25 @@
   object-fit: contain;
 }
 .profile-info-detail {
-    width: 450px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  border: 1px solid #d6cccc;
-  border-radius: 10px;
-  padding: 10px
+  flex: 1;
+  width: auto;
+
+  border: none;
+
+  background: #fafbfc;
+
+  padding: 20px;
+
+  border-radius: 12px;
 }
 .detail-description {
-  display: flex;
-  align-items: center;
-  gap: 13px;
+  padding: 10px;
+  border-radius: 8px;
+  transition: .2s;
+}
+
+.detail-description:hover {
+  background: white;
 }
 
 .detail-description-icon {

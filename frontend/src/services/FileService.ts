@@ -45,6 +45,17 @@ const FileService = {
       .then((res) => res.data as UploadResponse);
   },
 
+  uploadFromCrawl: (file: File): Promise<UploadResponse> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return axiosInstance
+      .post("/file/upload_from_crawl", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((res) => res.data as UploadResponse);
+  },
+
   /**
    * Lấy presigned URL thật từ file_id.
    * Endpoint backend trả: { url: "http://localhost:9000/..." }

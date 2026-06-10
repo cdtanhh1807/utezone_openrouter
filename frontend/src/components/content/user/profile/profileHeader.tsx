@@ -227,6 +227,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
                       await handleSendMessage();
                     }
 
+                    await refetch();
+
                     setOpenMessage(true);
                   }}
                 >

@@ -15,7 +15,7 @@ import logochat from "../../../../assets/logochat.png";
 import useConversations from "../chat/useConversation";
 import ChatDialog from "../chat/ChatDialog";
 import VideoCameraFrontIcon from "@mui/icons-material/VideoCameraFront";
-import ForumIcon from '@mui/icons-material/Forum';
+import ForumIcon from "@mui/icons-material/Forum";
 
 const HeaderSide = () => {
   const [searchText, setSearchText] = useState("");
@@ -31,6 +31,7 @@ const HeaderSide = () => {
   const [focusCommentId, setFocusCommentId] = useState<string | null>(null);
   const [openMessage, setOpenMessage] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -66,15 +67,23 @@ const HeaderSide = () => {
     if (!openMessage) return;
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+
+      if (
+        boxRef.current &&
+        !boxRef.current.contains(target) &&
+        !buttonRef.current?.contains(target)
+      ) {
         setOpenMessage(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [openMessage]);
 
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openMessage]);
   const handleSearch = () => {
     if (searchText.trim()) {
       navigate(`/search?keyword=${encodeURIComponent(searchText)}`);
@@ -138,12 +147,18 @@ const HeaderSide = () => {
           </button>
 
           <button
+            ref={buttonRef}
             className="message-btn-header"
-            onClick={() => setOpenMessage(true)}
+            onClick={async () => {
+              if (!openMessage) {
+                await refetch();
+              }
+
+              setOpenMessage((prev) => !prev);
+            }}
           >
             <ForumIcon />
 
-            {/* ✅ Chỉ hiển thị khi load xong và có tin mới */}
             {!loading && unreadCount > 0 && (
               <span className="chat-badge-header">
                 {unreadCount > 99 ? "99+" : unreadCount}

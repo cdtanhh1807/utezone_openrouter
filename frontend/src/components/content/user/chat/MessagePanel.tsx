@@ -91,13 +91,13 @@ const MessagePanel: React.FC<Props> = ({ otherEmail }) => {
     try {
       const mediaIds = await Promise.all(
         images.map((item) =>
-          FileService.uploadPicture(item.file).then((r) => r.file_id),
+          FileService.uploadFromCrawl(item.file).then((r) => r.file_id),
         ),
       );
 
       const fileIds = await Promise.all(
         files.map((item) =>
-          FileService.uploadPicture(item.file).then((r) => r.file_id),
+          FileService.uploadFromCrawl(item.file).then((r) => r.file_id),
         ),
       );
 
@@ -151,6 +151,31 @@ const MessagePanel: React.FC<Props> = ({ otherEmail }) => {
     }
   };
 
+  const visibleMessages = messages.slice(1);
+
+  const shouldShowTimestamp = (
+    current: any,
+    previous?: any,
+    thresholdMinutes = 5,
+  ) => {
+    if (!previous) return true;
+
+    const currentTime = new Date(current.created_at).getTime();
+    const previousTime = new Date(previous.created_at).getTime();
+
+    return currentTime - previousTime >= thresholdMinutes * 60 * 1000;
+  };
+
+  const formatMessageTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
   return (
     <div className={`panel ${anim ? "panel-animate" : ""}`}>
       {/* HEADER */}
@@ -168,45 +193,55 @@ const MessagePanel: React.FC<Props> = ({ otherEmail }) => {
 
       {/* BODY */}
       <div className="panel-body" ref={bodyRef}>
-        {messages.map((m, i) => (
-          <div
-            key={m.id || i}
-            className={`msg-line ${m.sender_email === me ? "me" : "other"}`}
-          >
-            {m.content?.trim() && (
-              <div className="msg-bubble">
-                <div className="msg-text">{m.content}</div>
-              </div>
-            )}
+        {visibleMessages.map((m, i) => {
+          const prev = visibleMessages[i - 1];
 
-            {/* MEDIA */}
-            {(m.media ?? []).length > 0 && (
-              <div className="msg-media">
-                {(m.media ?? []).map((url, idx) => (
-                  <img key={idx} src={url} className="chat-img" />
-                ))}
-              </div>
-            )}
+          const showTimestamp = shouldShowTimestamp(m, prev);
 
-            {/* FILES */}
-            {(m.file ?? []).length > 0 && (
-              <div className="msg-files">
-                {(m.file ?? []).map((url, idx) => (
-                  <a
-                    key={idx}
-                    href={url}
-                    className="chat-file"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    📎 File {idx + 1}
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+          return (
+            <React.Fragment key={m.id || i}>
+              {showTimestamp && (
+                <div className="msg-timestamp">
+                  {formatMessageTime(m.created_at)}
+                </div>
+              )}
 
+              <div
+                className={`msg-line ${m.sender_email === me ? "me" : "other"}`}
+              >
+                {m.content?.trim() && (
+                  <div className="msg-bubble">
+                    <div className="msg-text">{m.content}</div>
+                  </div>
+                )}
+
+                {(m.media ?? []).length > 0 && (
+                  <div className="msg-media">
+                    {(m.media ?? []).map((url, idx) => (
+                      <img key={idx} src={url} className="chat-img" />
+                    ))}
+                  </div>
+                )}
+
+                {(m.file ?? []).length > 0 && (
+                  <div className="msg-files">
+                    {(m.file ?? []).map((url, idx) => (
+                      <a
+                        key={idx}
+                        href={url}
+                        className="chat-file"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        📎 File {idx + 1}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </React.Fragment>
+          );
+        })}
         {/* PREVIEW */}
         {images.map((img, i) => (
           <div key={i} className="preview-img-wrapper">

@@ -19,7 +19,7 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 
 OPENROUTER_TEXT_MODEL = os.getenv(
     "OPENROUTER_TEXT_MODEL",
-    "z-ai/glm-4.5-air:free",
+    "google/gemini-2.5-flash-lite",
 )
 
 OPENROUTER_VISION_MODEL = os.getenv(

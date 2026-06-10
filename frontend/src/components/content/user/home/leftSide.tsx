@@ -22,7 +22,7 @@ import DepartmentModal from "../relationship/department";
 import PolicyModal from "../report/policyModal";
 import IncidentReportModal from "../report/incidentReportModal";
 import AIActionButton from "../summary/aiButton";
-import AISummaryPortal from "../summary/AISummaryPortal";
+import AISummaryPortal from "../summary/aiSummaryPortal";
 
 const LeftSide = () => {
   const [openCreatePost, setOpenCreatePost] = useState<boolean>(false);

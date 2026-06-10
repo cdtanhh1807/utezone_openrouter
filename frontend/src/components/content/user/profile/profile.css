@@ -1,22 +1,21 @@
-/* ===== Container chính ===== */
 .my-profile {
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
   min-height: 100vh;
-  background-color: #f9f9f9; /* optional: màu nền */
+  background: #f5f7fb;
 }
 
-/* ===== Header ===== */
+.profile-main {
+  width: 100%;
+}
+
 .header {
-  flex: none;          /* không co giãn */
-  height: auto;        /* chiều cao tính theo nội dung */
-  min-height: 300px; 
-  max-width: 1300px;
-  margin: 0 auto;      /* căn giữa */
+  max-width: 1100px;
+  margin: 0 auto;
   padding: 20px 0;
+}
+
+.profile-body {
+  max-width: 1100px;
+  margin: 0 auto;
 }
 .storyBlock{
   margin-left: 95px;
@@ -81,7 +80,7 @@
   max-width: 1300px;
   margin: 0 auto;       /* căn giữa */
   overflow-y: auto;
-  padding-bottom: 50px; /* tránh chèn với footer/floating button */
+  padding-bottom: 50px;
 }
 
 /* ===== Post Card ===== */
