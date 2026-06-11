@@ -9,8 +9,9 @@ class AddPostRequest(BaseModel):
     content: str
     # createdAt: datetime = datetime.now(timezone.utc)
     createdAt: datetime = Field(default_factory=datetime.now)
-    postType: str              # long | short
-    visibility: str            # public | friends only | only me
+    postType: str              
+    visibility: str
+    comment_visibility: str            
     status: str
     createdBy: Optional[str] = None 
     category: Optional[List[str]] = None

@@ -1,6 +1,7 @@
 from email.quoprimime import unquote
 from typing import Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Security, status
+from dto.account.request.check_followed_request import CheckFollowedRequest
 from dto.account.request.follow_block_request import FollowBlockRequest
 from dto.account.request.get_all_account_request import GetAllAccountRequest
 from dto.account.request.get_mod_request import GetModRequest
@@ -9,6 +10,7 @@ from dto.account.request.suggest_follow_request import SuggestFollowRequest
 from dto.account.request.update_account_request import UpdateAccountRequest
 from dto.account.request.update_account_t_request import UpdateAccountTRequest
 from dto.account.response.account_info_response import AccountInfoResponse
+from dto.account.response.check_followed_response import CheckFollowedResponse
 from dto.account.response.follow_block_response import FollowBlockResponse
 from dto.account.response.get_all_account_response import GetAllAccountResponse
 from dto.account.response.get_mod_response import GetModResponse
@@ -252,3 +254,12 @@ async def suggest_follow(
 ):
     req = SuggestFollowRequest(email=current_user["sub"], limit=limit)
     return await service.get_suggest_follow(req)
+
+@router.get("/check_followed/{requester_email}/{post_owner_email}", response_model=CheckFollowedResponse)
+async def check_followed(
+    requester_email: str,
+    post_owner_email: str,
+    service: IAccountService = Depends(get_account_service)
+):
+    req = CheckFollowedRequest(requester_email=requester_email, post_owner_email=post_owner_email)
+    return await service.check_followed(req)

@@ -45,10 +45,11 @@ class Post(BaseModel):
     title: str
     content: str
     createdAt: Optional[datetime] = Field(default_factory=datetime.now)
-    postType: str              # long | short
-    visibility: str            # public | friends only | only me
-    status: str                # active | draft | deleted
-    createdBy: str             # user id
+    postType: str              
+    visibility: str
+    comment_visibility: str            
+    status: str                
+    createdBy: str             
     category: Optional[List[str]] = []
     thumbnails: Optional[List[str]] = []
     views: int = 0

@@ -15,6 +15,7 @@ class UpdatePostRequest(BaseModel):
     createdAt: Optional[datetime] = None
     postType: Optional[str] = None
     visibility: Optional[str] = None
+    comment_visibility: Optional[str] = None
     status: Optional[str] = None
     createdBy: Optional[str] = None
     category: Optional[List[str]] = None

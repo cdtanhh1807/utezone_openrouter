@@ -415,3 +415,18 @@ class AccountRepository:
         result = accounts[:limit]
 
         return result
+    
+    @staticmethod
+    async def check_followed(
+        requester_email: str,
+        post_owner_email: str
+    ) -> bool:
+        doc = await AccountRepository.collection.find_one(
+            {
+                "email": requester_email,
+                "userInfo.followed": post_owner_email
+            },
+            {"_id": 1}
+        )
+
+        return doc is not None

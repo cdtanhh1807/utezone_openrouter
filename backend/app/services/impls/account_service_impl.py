@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import HTTPException, status
 from redis import RedisError
 import requests
+from dto.account.request.check_followed_request import CheckFollowedRequest
 from dto.account.request.follow_block_request import FollowBlockRequest
 from dto.account.request.get_all_account_request import GetAllAccountRequest
 from dto.account.request.get_mod_request import GetModRequest
@@ -14,6 +15,7 @@ from dto.account.request.google_auth_request import GoogleAuthRequest
 from dto.account.request.register_user_request import RegisterUserRequest
 from dto.account.request.suggest_follow_request import SuggestFollowRequest
 from dto.account.request.update_account_request import UpdateAccountRequest
+from dto.account.response.check_followed_response import CheckFollowedResponse
 from dto.account.response.follow_block_response import FollowBlockResponse
 from dto.account.response.get_all_account_response import GetAllAccountResponse
 from dto.account.response.get_mod_response import GetModResponse
@@ -379,3 +381,8 @@ class AccountServiceImpl(IAccountService):
             ))
 
         return SuggestFollowResponse(suggestions=suggestion_items)
+    
+    async def check_followed(self, req: CheckFollowedRequest) -> CheckFollowedResponse:
+        is_following = await AccountRepository.check_followed(
+            req.requester_email, req.post_owner_email)
+        return CheckFollowedResponse(is_following=is_following)
