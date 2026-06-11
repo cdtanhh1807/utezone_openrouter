@@ -359,22 +359,97 @@ async def moderate_text_message(
     violation_count = await channel_service.add_violation(sender_email, channel_id, "text")
     if violation_count >= rule.max_violations:
         action = rule.action
+        reason = moderation.get("reason", "Nội dung vi phạm")
+        muted_until = None
+
         if action == "kick":
             channel = await channel_service.get_channel(channel_id)
+
             if channel:
-                await channel_service.kick_member(channel_id, channel.owner_email, sender_email)
+                owner_email = channel.owner_email.strip().lower()
+                target_email = sender_email.strip().lower()
+
+                kick_result = await channel_service.kick_member(
+                    channel_id,
+                    owner_email,
+                    target_email
+                )
+
+                if kick_result.get("success"):
+                    await ws_manager.broadcast(channel_id, {
+                        "type": "member_kicked",
+                        "channel_id": channel_id,
+                        "member_email": target_email,
+                        "kicked_by": "moderation"
+                    })
+
+                    await ws_manager.send_to_account(target_email, {
+                        "type": "you_were_kicked",
+                        "channel_id": channel_id,
+                        "member_email": target_email,
+                        "kicked_by": "moderation"
+                    })
+
+                    await ws_manager.force_disconnect_user(
+                        channel_id,
+                        target_email,
+                        code=4001,
+                        reason="Bạn đã bị xóa khỏi kênh do vi phạm quy tắc kiểm duyệt"
+                    )
+
         elif action == "ban":
             channel = await channel_service.get_channel(channel_id)
+
             if channel:
-                await channel_service.kick_member(channel_id, channel.owner_email, sender_email)
+                owner_email = channel.owner_email.strip().lower()
+                target_email = sender_email.strip().lower()
+
+                kick_result = await channel_service.kick_member(
+                    channel_id,
+                    owner_email,
+                    target_email
+                )
+
+                if kick_result.get("success"):
+                    await ws_manager.broadcast(channel_id, {
+                        "type": "member_kicked",
+                        "channel_id": channel_id,
+                        "member_email": target_email,
+                        "kicked_by": "moderation"
+                    })
+
+                    await ws_manager.send_to_account(target_email, {
+                        "type": "you_were_kicked",
+                        "channel_id": channel_id,
+                        "member_email": target_email,
+                        "kicked_by": "moderation"
+                    })
+
+                    await ws_manager.force_disconnect_user(
+                        channel_id,
+                        target_email,
+                        code=4001,
+                        reason="Bạn đã bị cấm khỏi kênh do vi phạm quy tắc kiểm duyệt"
+                    )
+
         elif action == "mute" and rule.penalty_time:
-            await channel_service.mute_user(sender_email, channel_id, rule.penalty_time)
+            mute_result = await channel_service.mute_user(
+                email=sender_email,
+                channel_id=channel_id,
+                minutes=rule.penalty_time,
+                reason=reason
+            )
+
+            muted_until = mute_result.get("muted_until")
+
         await ws_manager.broadcast(channel_id, {
             "type": "user_violation",
+            "channel_id": channel_id,
             "user_email": sender_email,
             "action": action,
-            "reason": moderation.get("reason", "Nội dung vi phạm"),
-            "message_id": message_id
+            "reason": reason,
+            "message_id": message_id,
+            "muted_until": muted_until.isoformat() if muted_until else None
         })
     else:
         await ws_manager.broadcast(channel_id, {

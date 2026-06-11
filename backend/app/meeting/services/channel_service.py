@@ -227,6 +227,9 @@ class ChannelService:
             {"$pull": {"members": {"email": member_email}}}
         )
 
+        # Nếu user đang được ghi session ở channel/chatroom này thì xóa luôn.
+        await self.clear_user_session(member_email)
+
         return {"success": True, "message": f"Đã kick {member_email}"}
 
     # ==================== CHAT ROOM CRUD ====================
@@ -414,20 +417,55 @@ class ChannelService:
 
     # ==================== MESSAGES ====================
 
-    async def send_message(self, room_id: str, channel_id: str,
-                        sender_email: str, sender_name: str,
-                        content: str, msg_type: str = "text", file_name: str = None) -> Message:
+    async def send_message(
+        self,
+        room_id: str,
+        channel_id: str,
+        sender_email: str,
+        sender_name: str,
+        content: str,
+        msg_type: str = "text",
+        file_name: str = None
+    ) -> Message:
+        sender_email_key = (sender_email or "").strip().lower()
+
         chatroom = await self.get_chat_room(room_id)
+
         if not chatroom:
             raise ValueError("Chat room không tồn tại")
+
         if chatroom.room_type == "voice":
             raise ValueError("Không thể gửi tin nhắn trong phòng voice")
+
         channel = await self.get_channel(channel_id)
+
         if not channel:
             raise ValueError("Channel không tồn tại")
-        is_member = any(m.email == sender_email and m.status == "approved" for m in channel.members)
+
+        is_member = any(
+            (m.email or "").strip().lower() == sender_email_key
+            and m.status == "approved"
+            for m in channel.members
+        )
+
         if not is_member:
             raise ValueError("Bạn không phải thành viên của channel này")
+
+        mute_status = await self.get_member_mute_status(
+            channel_id=channel_id,
+            member_email=sender_email_key
+        )
+
+        if mute_status:
+            muted_until = mute_status.get("muted_until")
+            reason = mute_status.get("reason") or "Bạn đang bị cấm gửi tin nhắn trong kênh này"
+
+            raise PermissionError({
+                "error": "muted",
+                "message": "Bạn đang bị cấm gửi tin nhắn trong kênh này",
+                "reason": reason,
+                "muted_until": muted_until.isoformat() if muted_until else None
+            })
 
         message = Message(
             room_id=room_id,
@@ -435,10 +473,12 @@ class ChannelService:
             sender_email=sender_email,
             sender_name=sender_name,
             content=content,
-            msg_type=msg_type,      # lưu loại tin nhắn
-            file_name=file_name     # lưu tên file nếu có
+            msg_type=msg_type,
+            file_name=file_name
         )
+
         await self.messages_col.insert_one(message.model_dump())
+
         return message
 
     async def get_messages(self, room_id: str, limit: int = 50, before: Optional[str] = None) -> List[dict]:
@@ -547,25 +587,37 @@ class ChannelService:
         })
         return count + 1
 
-    async def mute_user(self, email: str, channel_id: str, minutes: int):
-        from datetime import datetime, timedelta
-        expire_at = datetime.now() + timedelta(minutes=minutes)
-        await self.db.muted_users.update_one(
-            {"email": email, "channel_id": channel_id},
-            {"$set": {"expire_at": expire_at}},
-            upsert=True
-        )
-        # Tạo TTL index (chạy một lần khi khởi tạo)
-        await self.db.muted_users.create_index("expire_at", expireAfterSeconds=0)
+    async def mute_user(
+        self,
+        email: str,
+        channel_id: str,
+        minutes: int,
+        reason: str = ""
+    ):
+        expire_at = dt.now() + timedelta(minutes=minutes)
 
-    async def is_muted(self, email: str, channel_id: str) -> bool:
-        from datetime import datetime
-        muted = await self.db.muted_users.find_one({
+        success = await self.mute_member_in_channel(
+            channel_id=channel_id,
+            member_email=email,
+            muted_until=expire_at,
+            reason=reason or "Vi phạm quy tắc kiểm duyệt"
+        )
+
+        return {
+            "success": success,
             "email": email,
             "channel_id": channel_id,
-            "expire_at": {"$gt": datetime.now()}
-        })
-        return muted is not None
+            "muted_until": expire_at,
+            "reason": reason or "Vi phạm quy tắc kiểm duyệt"
+        }
+
+    async def is_muted(self, email: str, channel_id: str) -> bool:
+        mute_status = await self.get_member_mute_status(
+            channel_id=channel_id,
+            member_email=email
+        )
+
+        return mute_status is not None
     
     async def get_message_by_id(self, message_id: str) -> Optional[dict]:
         data = await self.messages_col.find_one({"message_id": message_id})
@@ -615,6 +667,103 @@ class ChannelService:
             "message_id": message_id,
             "room_id": message.get("room_id"),
             "channel_id": channel_id
+        }
+    
+    async def mute_member_in_channel(
+        self,
+        channel_id: str,
+        member_email: str,
+        muted_until: dt,
+        reason: str = ""
+    ) -> bool:
+        email_key = (member_email or "").strip().lower()
+
+        result = await self.channels_col.update_one(
+            {
+                "channel_id": channel_id,
+                "members.email": email_key
+            },
+            {
+                "$set": {
+                    "members.$.muted_until": muted_until,
+                    "members.$.mute_reason": reason or "Vi phạm quy tắc kiểm duyệt"
+                }
+            }
+        )
+
+        return result.modified_count > 0
+
+
+    async def clear_member_mute(
+        self,
+        channel_id: str,
+        member_email: str
+    ) -> bool:
+        email_key = (member_email or "").strip().lower()
+
+        result = await self.channels_col.update_one(
+            {
+                "channel_id": channel_id,
+                "members.email": email_key
+            },
+            {
+                "$set": {
+                    "members.$.muted_until": None,
+                    "members.$.mute_reason": None
+                }
+            }
+        )
+
+        return result.modified_count > 0
+
+
+    async def get_member_mute_status(
+        self,
+        channel_id: str,
+        member_email: str
+    ) -> Optional[dict]:
+        email_key = (member_email or "").strip().lower()
+
+        channel = await self.get_channel(channel_id)
+
+        if not channel:
+            return None
+
+        member = next(
+            (
+                m for m in channel.members
+                if (m.email or "").strip().lower() == email_key
+                and m.status == "approved"
+            ),
+            None
+        )
+
+        if not member:
+            return None
+
+        muted_until = getattr(member, "muted_until", None)
+
+        if not muted_until:
+            return None
+
+        # Nếu dữ liệu cũ lỡ lưu dạng string thì parse lại.
+        if isinstance(muted_until, str):
+            try:
+                muted_until = dt.fromisoformat(muted_until.replace("Z", "+00:00")).replace(tzinfo=None)
+            except Exception:
+                await self.clear_member_mute(channel_id, email_key)
+                return None
+
+        now = dt.now()
+
+        if muted_until <= now:
+            await self.clear_member_mute(channel_id, email_key)
+            return None
+
+        return {
+            "muted": True,
+            "muted_until": muted_until,
+            "reason": getattr(member, "mute_reason", None) or "Bạn đang bị cấm gửi tin nhắn trong kênh này"
         }
 
 channel_service = ChannelService()

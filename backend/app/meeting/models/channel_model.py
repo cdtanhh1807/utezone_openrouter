@@ -10,6 +10,8 @@ class ChannelMember(BaseModel):
     role: Literal["owner", "member"] = "member"
     status: Literal["pending", "approved", "rejected"] = "approved"
     joined_at: dt = Field(default_factory=dt.now)
+    muted_until: Optional[dt] = None
+    mute_reason: Optional[str] = None
 
 
 class Channel(BaseModel):
