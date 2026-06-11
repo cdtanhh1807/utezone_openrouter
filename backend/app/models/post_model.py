@@ -47,7 +47,7 @@ class Post(BaseModel):
     createdAt: Optional[datetime] = Field(default_factory=datetime.now)
     postType: str              
     visibility: str
-    comment_visibility: str            
+    comment_visibility: Optional[str] = None            
     status: str                
     createdBy: str             
     category: Optional[List[str]] = []

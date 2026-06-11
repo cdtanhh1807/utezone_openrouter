@@ -11,7 +11,7 @@ class AddPostRequest(BaseModel):
     createdAt: datetime = Field(default_factory=datetime.now)
     postType: str              
     visibility: str
-    comment_visibility: str            
+    comment_visibility: Optional[str] = None            
     status: str
     createdBy: Optional[str] = None 
     category: Optional[List[str]] = None
