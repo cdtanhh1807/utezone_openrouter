@@ -18,17 +18,17 @@ beautifulsoup4>=4.12.0
 python-dateutil>=2.8.0
 lxml
 httpx
-
-#ai scan post
 imageio-ffmpeg
 python-docx
 PyPDF2
-
-#ai meet
 openrouter
-httpx
-
-
 python-dotenv
+pymupdf
+pillow
+sentence-transformers
+numpy
+openpyxl
+pandas
+xlrd
 
 #nhớ run thêm: playwright install

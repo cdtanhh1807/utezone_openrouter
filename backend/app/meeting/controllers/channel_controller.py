@@ -13,13 +13,17 @@ from meeting.models.channel_model import (
     CreateChannelRequest, UpdateChannelRequest,
     CreateChatRoomRequest, UpdateChatRoomRequest,
     JoinChannelRequest, ApproveMemberRequest,
-    SendMessageRequest
+    SendMessageRequest,
+    AskDocumentRequest
 )
 from utils.security import get_current_user
 import httpx
 
 from fastapi import BackgroundTasks
 from meeting.services.moderation_service import moderate_text_message
+
+from meeting.services.document_rag_service import document_rag_service
+from meeting.models.channel_model import AskDocumentRequest
 
 router = APIRouter(prefix="/channels", tags=["channels"])
 
@@ -1362,3 +1366,76 @@ async def update_channel_rules(channel_id: str, req: dict, current_user: dict = 
     )
     await channel_service.save_channel_rules(rules)
     return rules.model_dump()
+
+#RAG
+@router.post("/documents/{file_id}/prepare")
+async def prepare_document_for_ai(
+    file_id: str,
+    message_id: Optional[str] = None,
+    room_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    if not room_id:
+        raise HTTPException(status_code=400, detail="Thiếu room_id")
+
+    try:
+        result = await document_rag_service.prepare_document(
+            file_id=file_id,
+            message_id=message_id or "",
+            room_id=room_id,
+            user_email=email
+        )
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    except Exception as e:
+        print(f"[DOCUMENT_PREPARE_ERROR] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/documents/{file_id}/ai-history")
+async def get_document_ai_history(
+    file_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    history = await document_rag_service.get_history(
+        file_id=file_id,
+        user_email=email
+    )
+
+    return {"messages": history}
+
+
+@router.post("/documents/{file_id}/ask")
+async def ask_document_ai(
+    file_id: str,
+    req: AskDocumentRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    if not req.question or not req.question.strip():
+        raise HTTPException(status_code=400, detail="Câu hỏi không được để trống")
+
+    try:
+        result = await document_rag_service.ask_document(
+            file_id=file_id,
+            user_email=email,
+            question=req.question.strip()
+        )
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    except Exception as e:
+        print(f"[DOCUMENT_ASK_ERROR] {e}")
+        raise HTTPException(status_code=500, detail=str(e))

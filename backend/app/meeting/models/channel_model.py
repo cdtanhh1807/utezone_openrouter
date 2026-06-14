@@ -2,6 +2,7 @@ from datetime import datetime as dt
 from typing import Optional, List, Literal
 from pydantic import BaseModel, Field
 import uuid
+from typing import Any, Dict
 
 
 class ChannelMember(BaseModel):
@@ -120,3 +121,46 @@ class ChannelRules(BaseModel):
     penalty_time: Optional[int] = None
     updated_at: dt = Field(default_factory=dt.now)
     updated_by: str
+
+
+
+#RAG
+class DocumentIndex(BaseModel):
+    document_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    file_id: str
+    message_id: Optional[str] = None
+    room_id: str
+    channel_id: str
+    file_name: str
+    content_type: Optional[str] = None
+    status: Literal["processing", "ready", "failed"] = "processing"
+    error: Optional[str] = None
+    chunk_count: int = 0
+    created_at: dt = Field(default_factory=dt.now)
+    updated_at: Optional[dt] = None
+
+
+class DocumentChunk(BaseModel):
+    chunk_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    document_id: str
+    file_id: str
+    chunk_index: int
+    text: str
+    embedding: List[float]
+    metadata: Dict[str, Any] = {}
+    created_at: dt = Field(default_factory=dt.now)
+
+
+class DocumentAIMessage(BaseModel):
+    message_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    conversation_id: str
+    document_id: str
+    file_id: str
+    user_email: str
+    role: Literal["user", "assistant"] = "user"
+    content: str
+    created_at: dt = Field(default_factory=dt.now)
+
+
+class AskDocumentRequest(BaseModel):
+    question: str
