@@ -10,7 +10,7 @@ from fastapi.encoders import jsonable_encoder
 from typing import Optional
 from meeting.services.channel_service import channel_service
 from meeting.models.channel_model import (
-    CreateChannelRequest, UpdateChannelRequest,
+    AskAIConversationRequest, CreateAIConversationRequest, CreateChannelRequest, UpdateChannelRequest,
     CreateChatRoomRequest, UpdateChatRoomRequest,
     JoinChannelRequest, ApproveMemberRequest,
     SendMessageRequest,
@@ -1438,4 +1438,159 @@ async def ask_document_ai(
 
     except Exception as e:
         print(f"[DOCUMENT_ASK_ERROR] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+#Nâng cấp lên thành đoạn hội thoại với UTEZoneAI
+@router.get("/chatrooms/{room_id}/ai-conversations")
+async def list_room_ai_conversations(
+    room_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    return {
+        "conversations": await document_rag_service.list_ai_conversations(
+            room_id=room_id,
+            user_email=email
+        )
+    }
+
+@router.post("/chatrooms/{room_id}/ai-conversations")
+async def create_room_ai_conversation(
+    room_id: str,
+    req: CreateAIConversationRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    room = await channel_service.get_chat_room(room_id)
+
+    if not room:
+        raise HTTPException(status_code=404, detail="Không tìm thấy phòng chat")
+
+    try:
+        conversation = await document_rag_service.create_ai_conversation(
+            room_id=room_id,
+            channel_id=room.channel_id,
+            user_email=email,
+            title=req.title,
+            documents=req.documents
+        )
+
+        return conversation
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    except Exception as e:
+        print(f"[AI_CONVERSATION_CREATE_ERROR] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/ai-conversations/{conversation_id}")
+async def get_ai_conversation(
+    conversation_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    try:
+        return await document_rag_service.get_conversation_history(
+            conversation_id=conversation_id,
+            user_email=email
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    
+@router.post("/ai-conversations/{conversation_id}/ask")
+async def ask_ai_conversation(
+    conversation_id: str,
+    req: AskAIConversationRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    if not req.question or not req.question.strip():
+        raise HTTPException(status_code=400, detail="Câu hỏi không được để trống")
+
+    try:
+        return await document_rag_service.ask_ai_conversation(
+            conversation_id=conversation_id,
+            user_email=email,
+            question=req.question.strip()
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    except Exception as e:
+        print(f"[AI_CONVERSATION_ASK_ERROR] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/chatrooms/{room_id}/ai-conversations/from-file")
+async def create_ai_conversation_from_file(
+    room_id: str,
+    req: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    room = await channel_service.get_chat_room(room_id)
+
+    if not room:
+        raise HTTPException(status_code=404, detail="Không tìm thấy phòng chat")
+
+    conversation = await document_rag_service.get_or_create_single_file_conversation(
+        room_id=room_id,
+        channel_id=room.channel_id,
+        user_email=email,
+        file_id=req.get("file_id"),
+        file_name=req.get("file_name") or "Tài liệu",
+        message_id=req.get("message_id") or ""
+    )
+
+    return conversation
+
+@router.delete("/ai-conversations/{conversation_id}")
+async def delete_ai_conversation(
+    conversation_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    try:
+        return await document_rag_service.delete_ai_conversation(
+            conversation_id=conversation_id,
+            user_email=email
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    except Exception as e:
+        print(f"[AI_CONVERSATION_DELETE_ERROR] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.patch("/ai-conversations/{conversation_id}/rename")
+async def rename_ai_conversation(
+    conversation_id: str,
+    req: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    title = (req.get("title") or "").strip()
+
+    try:
+        return await document_rag_service.rename_ai_conversation(
+            conversation_id=conversation_id,
+            user_email=email,
+            title=title
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    except Exception as e:
+        print(f"[AI_CONVERSATION_RENAME_ERROR] {e}")
         raise HTTPException(status_code=500, detail=str(e))

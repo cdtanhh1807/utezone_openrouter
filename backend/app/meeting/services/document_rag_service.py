@@ -19,6 +19,7 @@ class DocumentRAGService:
         self.document_indexes_col = db.document_indexes
         self.document_chunks_col = db.document_chunks
         self.document_ai_messages_col = db.document_ai_messages
+        self.document_ai_conversations_col = db.document_ai_conversations
         self.embedding_model = None
 
     def _get_embedding_model(self):
@@ -366,7 +367,16 @@ Ngữ cảnh ảnh: {page_label}
 
         return await asyncio.gather(*tasks)
 
-    async def prepare_document(self, file_id: str, message_id: str, room_id: str, user_email: str) -> dict:
+    async def prepare_document(
+        self,
+        file_id: str,
+        message_id: str,
+        room_id: str,
+        user_email: str,
+        file_name: str = "",
+        source: str = "chat",
+        channel_id: str = ""
+    ) -> dict:
         existing = await self.document_indexes_col.find_one({"file_id": file_id})
 
         if existing:
@@ -378,29 +388,42 @@ Ngữ cảnh ảnh: {page_label}
                 "file_name": existing.get("file_name")
             }
 
-        message_query = {
-            "room_id": room_id,
-            "content": file_id,
-            "msg_type": "file"
-        }
+        message = None
 
-        if message_id:
-            message_query["message_id"] = message_id
+        # File lấy từ lịch sử chat thì mới cần tìm message trong room
+        if source != "upload":
+            message_query = {
+                "room_id": room_id,
+                "content": file_id,
+                "msg_type": "file"
+            }
 
-        message = await self.db.messages.find_one(message_query)
+            if message_id:
+                message_query["message_id"] = message_id
 
-        if not message:
-            raise ValueError("Không tìm thấy message tài liệu trong phòng chat")
+            message = await self.db.messages.find_one(message_query)
+
+            if not message:
+                raise ValueError("Không tìm thấy message tài liệu trong phòng chat")
+
+            file_name = message.get("file_name") or file_name or "document"
+            channel_id = message.get("channel_id") or channel_id
+            message_id = message.get("message_id") or message_id
+
+        else:
+            # File upload riêng trong form "Nhập tài liệu", không nằm trong lịch sử chat
+            file_name = file_name or "document"
+            message_id = message_id or ""
 
         document_id = str(uuid.uuid4())
 
         await self.document_indexes_col.insert_one({
             "document_id": document_id,
             "file_id": file_id,
-            "message_id": message.get("message_id"),
+            "message_id": message_id,
             "room_id": room_id,
-            "channel_id": message.get("channel_id"),
-            "file_name": message.get("file_name") or "document",
+            "channel_id": channel_id,
+            "file_name": file_name,
             "content_type": None,
             "status": "processing",
             "error": None,
@@ -413,7 +436,7 @@ Ngữ cảnh ảnh: {page_label}
             await self.index_document(
                 document_id=document_id,
                 file_id=file_id,
-                file_name=message.get("file_name") or "document"
+                file_name=file_name
             )
 
             doc = await self.document_indexes_col.find_one({"document_id": document_id})
@@ -742,6 +765,383 @@ Câu hỏi hiện tại:
         scored.sort(key=lambda x: x["score"], reverse=True)
 
         return scored[:top_k]
+    
+    async def create_ai_conversation(
+        self,
+        room_id: str,
+        channel_id: str,
+        user_email: str,
+        title: str,
+        documents: list
+    ):
+        title = (title or "").strip() or "Cuộc trò chuyện mới"
 
+        conversation_id = str(uuid.uuid4())
+        document_ids = []
+        final_documents = []
+
+        for item in documents:
+            file_id = item.get("file_id")
+            file_name = item.get("file_name") or "Tài liệu"
+            message_id = item.get("message_id") or ""
+            source = item.get("source") or "upload"
+
+            if not file_id:
+                continue
+
+            index = await self.prepare_document(
+                file_id=file_id,
+                message_id=message_id,
+                room_id=room_id,
+                user_email=user_email,
+                file_name=file_name,
+                source=source,
+                channel_id=channel_id
+            )
+
+            document_id = index.get("document_id")
+
+            if document_id:
+                document_ids.append(document_id)
+                final_documents.append({
+                    "document_id": document_id,
+                    "file_id": file_id,
+                    "file_name": file_name,
+                    "message_id": message_id,
+                    "source": source
+                })
+
+        if not document_ids:
+            raise ValueError("Chưa có tài liệu hợp lệ để tạo cuộc trò chuyện")
+
+        conversation = {
+            "conversation_id": conversation_id,
+            "room_id": room_id,
+            "channel_id": channel_id,
+            "user_email": user_email,
+            "title": title,
+            "document_ids": document_ids,
+            "documents": final_documents,
+            "mode": "multi" if len(document_ids) > 1 else "single",
+            "created_at": dt.now(),
+            "updated_at": dt.now()
+        }
+
+        await self.document_ai_conversations_col.insert_one(conversation)
+
+        conversation.pop("_id", None)
+
+        return conversation
+    
+    async def list_ai_conversations(self, room_id: str, user_email: str):
+        cursor = self.document_ai_conversations_col.find(
+            {
+                "room_id": room_id,
+                "user_email": user_email
+            }
+        ).sort("updated_at", -1)
+
+        conversations = []
+
+        async for item in cursor:
+            item["_id"] = str(item["_id"])
+            conversations.append(item)
+
+        return conversations
+    
+    async def get_conversation_history(self, conversation_id: str, user_email: str):
+        conversation = await self.document_ai_conversations_col.find_one({
+            "conversation_id": conversation_id,
+            "user_email": user_email
+        })
+
+        if not conversation:
+            raise ValueError("Không tìm thấy cuộc trò chuyện")
+
+        cursor = self.document_ai_messages_col.find(
+            {
+                "conversation_id": conversation_id,
+                "user_email": user_email
+            }
+        ).sort("created_at", 1)
+
+        messages = []
+
+        async for msg in cursor:
+            msg["_id"] = str(msg["_id"])
+            messages.append(msg)
+
+        conversation["_id"] = str(conversation["_id"])
+
+        return {
+            "conversation": conversation,
+            "messages": messages
+        }
+    
+    async def ask_ai_conversation(
+        self,
+        conversation_id: str,
+        user_email: str,
+        question: str
+    ):
+        conversation = await self.document_ai_conversations_col.find_one({
+            "conversation_id": conversation_id,
+            "user_email": user_email
+        })
+
+        if not conversation:
+            raise ValueError("Không tìm thấy cuộc trò chuyện")
+
+        document_ids = conversation.get("document_ids", [])
+
+        if not document_ids:
+            raise ValueError("Cuộc trò chuyện chưa có tài liệu")
+
+        model = self._get_embedding_model()
+
+        query_embedding = model.encode(
+            [f"query: {question}"],
+            normalize_embeddings=True
+        )[0]
+
+        chunks_cursor = self.document_chunks_col.find({
+            "document_id": {
+                "$in": document_ids
+            }
+        })
+
+        scored_chunks = []
+
+        async for chunk in chunks_cursor:
+            emb = chunk.get("embedding") or []
+
+            if not emb:
+                continue
+
+            score = float(np.dot(query_embedding, np.array(emb)))
+
+            scored_chunks.append({
+                "score": score,
+                "text": chunk.get("text", ""),
+                "metadata": chunk.get("metadata", {}),
+                "document_id": chunk.get("document_id")
+            })
+
+        scored_chunks.sort(key=lambda x: x["score"], reverse=True)
+
+        top_chunks = scored_chunks[:8]
+
+        doc_name_map = {
+            d.get("document_id"): d.get("file_name", "Tài liệu")
+            for d in conversation.get("documents", [])
+        }
+
+        context_parts = []
+
+        for idx, chunk in enumerate(top_chunks):
+            doc_name = doc_name_map.get(chunk.get("document_id"), "Tài liệu")
+
+            context_parts.append(
+                f"[Nguồn {idx + 1} | {doc_name}]\n{chunk['text']}"
+            )
+
+        context = "\n\n".join(context_parts)
+
+        history_cursor = self.document_ai_messages_col.find({
+            "conversation_id": conversation_id,
+            "user_email": user_email
+        }).sort("created_at", -1).limit(10)
+
+        history_items = []
+
+        async for msg in history_cursor:
+            history_items.append(msg)
+
+        history_items = list(reversed(history_items))
+
+        history_text = "\n".join([
+            f"{'Người dùng' if m.get('role') == 'user' else 'UTEZoneAI'}: {m.get('content', '')}"
+            for m in history_items
+        ])
+
+        document_names = ", ".join([
+            d.get("file_name", "Tài liệu")
+            for d in conversation.get("documents", [])
+        ])
+
+        prompt = f"""
+Bạn là UTEZoneAI, trợ lý đọc hiểu tài liệu trong chat room.
+
+Tên cuộc trò chuyện: {conversation.get("title")}
+Các tài liệu trong cuộc trò chuyện: {document_names}
+
+Lịch sử hội thoại gần đây:
+{history_text}
+
+Các đoạn tài liệu liên quan:
+{context}
+
+Câu hỏi của người dùng:
+{question}
+
+Quy tắc:
+- Chỉ trả lời dựa trên các tài liệu trong cuộc trò chuyện và lịch sử hội thoại.
+- Nếu không tìm thấy thông tin trong tài liệu, nói rõ: "Mình không tìm thấy thông tin này trong các tài liệu đã nhập."
+- Nếu câu hỏi liên quan nhiều tài liệu, hãy tổng hợp và so sánh giữa các tài liệu.
+- Khi có thể, hãy nêu tên tài liệu nguồn.
+- Trả lời bằng tiếng Việt.
+- Format bằng Markdown cơ bản: tiêu đề ngắn, bullet list, **in đậm** ý quan trọng.
+"""
+
+        answer = await _call_openrouter(
+            prompt=prompt,
+            model=TEXT_MODEL
+        )
+
+        now = dt.now()
+
+        await self.document_ai_messages_col.insert_many([
+            {
+                "message_id": str(uuid.uuid4()),
+                "conversation_id": conversation_id,
+                "document_id": None,
+                "file_id": None,
+                "user_email": user_email,
+                "role": "user",
+                "content": question,
+                "created_at": now
+            },
+            {
+                "message_id": str(uuid.uuid4()),
+                "conversation_id": conversation_id,
+                "document_id": None,
+                "file_id": None,
+                "user_email": user_email,
+                "role": "assistant",
+                "content": answer,
+                "created_at": dt.now()
+            }
+        ])
+
+        await self.document_ai_conversations_col.update_one(
+            {
+                "conversation_id": conversation_id,
+                "user_email": user_email
+            },
+            {
+                "$set": {
+                    "updated_at": dt.now()
+                }
+            }
+        )
+
+        return {
+            "answer": answer,
+            "conversation_id": conversation_id
+        }
+
+    async def get_or_create_single_file_conversation(
+        self,
+        room_id: str,
+        channel_id: str,
+        user_email: str,
+        file_id: str,
+        file_name: str,
+        message_id: str = ""
+    ):
+        existing = await self.document_ai_conversations_col.find_one({
+            "room_id": room_id,
+            "user_email": user_email,
+            "mode": "single",
+            "documents.file_id": file_id
+        })
+
+        if existing:
+            existing["_id"] = str(existing["_id"])
+            return existing
+
+        return await self.create_ai_conversation(
+            room_id=room_id,
+            channel_id=channel_id,
+            user_email=user_email,
+            title=file_name,
+            documents=[
+                {
+                    "file_id": file_id,
+                    "file_name": file_name,
+                    "message_id": message_id,
+                    "source": "chat"
+                }
+            ]
+        )
+    
+    async def delete_ai_conversation(
+        self,
+        conversation_id: str,
+        user_email: str
+    ):
+        conversation = await self.document_ai_conversations_col.find_one({
+            "conversation_id": conversation_id,
+            "user_email": user_email
+        })
+
+        if not conversation:
+            raise ValueError("Không tìm thấy cuộc trò chuyện")
+
+        # Xóa lịch sử chat AI của conversation này
+        await self.document_ai_messages_col.delete_many({
+            "conversation_id": conversation_id,
+            "user_email": user_email
+        })
+
+        # Xóa conversation
+        await self.document_ai_conversations_col.delete_one({
+            "conversation_id": conversation_id,
+            "user_email": user_email
+        })
+
+        return {
+            "success": True,
+            "message": "Đã xóa cuộc trò chuyện"
+        }
+    
+    async def rename_ai_conversation(
+        self,
+        conversation_id: str,
+        user_email: str,
+        title: str
+    ):
+        title = (title or "").strip()
+
+        if not title:
+            raise ValueError("Tên cuộc trò chuyện không được để trống")
+
+        conversation = await self.document_ai_conversations_col.find_one({
+            "conversation_id": conversation_id,
+            "user_email": user_email
+        })
+
+        if not conversation:
+            raise ValueError("Không tìm thấy cuộc trò chuyện")
+
+        await self.document_ai_conversations_col.update_one(
+            {
+                "conversation_id": conversation_id,
+                "user_email": user_email
+            },
+            {
+                "$set": {
+                    "title": title,
+                    "updated_at": dt.now()
+                }
+            }
+        )
+
+        return {
+            "success": True,
+            "conversation_id": conversation_id,
+            "title": title,
+            "message": "Đã đổi tên cuộc trò chuyện"
+        }
 
 document_rag_service = DocumentRAGService()

@@ -164,3 +164,24 @@ class DocumentAIMessage(BaseModel):
 
 class AskDocumentRequest(BaseModel):
     question: str
+
+class DocumentAIConversation(BaseModel):
+    conversation_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    room_id: str
+    channel_id: str
+    user_email: str
+    title: str
+    document_ids: List[str] = []
+    documents: List[Dict[str, Any]] = []
+    mode: Literal["single", "multi"] = "multi"
+    created_at: dt = Field(default_factory=dt.now)
+    updated_at: Optional[dt] = None
+
+
+class CreateAIConversationRequest(BaseModel):
+    title: str
+    documents: List[Dict[str, Any]] = []
+
+
+class AskAIConversationRequest(BaseModel):
+    question: str
