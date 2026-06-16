@@ -1,179 +1,281 @@
-.my-profile {
+/* Tổng thể nền trang */
+.modern-profile-page {
   min-height: 100vh;
-  background: #f5f7fb;
+  background-color: #f0f2f5; 
+  padding-bottom: 50px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-.profile-main {
+/* Container bọc toàn bộ nội dung */
+.profile-layout-wrapper {
+  max-width: 1190px;
+  width: 100%; /* Bắt buộc container giãn tối đa trong giới hạn 1050px */
+  margin: 0 auto;
+  padding: 20px 0px;
+  box-sizing: border-box; /* Khóa kích thước, ngăn không cho padding làm phình chiều rộng */
+}
+
+/* Header section */
+.profile-header-section {
   width: 100%;
+  margin-bottom: 16px;
 }
 
-.header {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 20px 0;
+/* GHI ĐÈ CSS CỦA PROFILE HEADER:
+   Ép thẻ bao ngoài cùng của ProfileHeader (nếu có max-width/margin riêng) 
+   phải tuân thủ tuyệt đối kích thước 100% của Wrapper */
+.profile-header-section > div {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
 }
 
-.profile-body {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.storyBlock{
-  margin-left: 95px;
+/* Style chung cho Card Box */
+.card-box {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #eaeaec;
+  box-sizing: border-box; /* Ngăn card bị tràn viền khi có padding */
 }
 
-/* ===== TAB ===== */
-.profile-tabs {
+/* =========================================
+   STORY HIGHLIGHTS (TOÀN CHIỀU NGANG)
+========================================= */
+/* =========================================
+   STORY HIGHLIGHTS (NẰM TRONG CỘT PHẢI)
+========================================= */
+.profile-story-section {
+  width: 100%;
+  padding: 16px 20px; /* Căn chỉnh lại padding cho đẹp vì giờ nó là 1 card con */
+  /* margin-bottom: 20px; <-- ĐÃ XÓA vì thẻ cha (profile-main-content) đã quản lý khoảng cách bằng gap: 16px */
+  box-sizing: border-box; 
+}
+
+.story-wrapper-horizontal {
+  width: 100%;
+  overflow-x: auto;
   display: flex;
-  justify-content: center;   /* căn giữa tab */
-  gap: 40px;
-  margin: 20px 0 10px;
-  margin-right: 425px;
-  border-bottom: 1px solid #ddd;
+  gap: 15px;
+  padding-bottom: 8px; /* Giữ khoảng trống cho thanh cuộn ngang */
 }
 
-.profile-tabs button {
-  background: none;
+.story-wrapper-horizontal::-webkit-scrollbar {
+  height: 6px;
+}
+.story-wrapper-horizontal::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+.story-wrapper-horizontal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* =========================================
+   GRID BỐ CỤC 2 CỘT CHO BODY 
+========================================= */
+.profile-body-grid {
+  display: grid;
+  /* Dùng minmax(0, 1fr) thay vì 1fr để ngăn nội dung bên trong (ảnh, text dài) đẩy vỡ layout lưới */
+  grid-template-columns: 360px minmax(0, 1fr); 
+  gap: 20px;
+  align-items: start; 
+  width: 100%; /* Ép Grid lưới có chiều rộng bằng chính xác Header ở trên */
+  box-sizing: border-box;
+}
+
+/* ===== CỘT TRÁI (SIDEBAR) ===== */
+.profile-sidebar-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 20px; 
+}
+
+/* ===== CỘT PHẢI (MAIN FEED & TABS) ===== */
+.profile-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0; /* Hỗ trợ minmax ở trên, đảm bảo cột phải có thể co lại vừa khít 100% */
+}
+
+/* Thanh Tabs */
+.modern-profile-tabs {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 4px 16px;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.modern-profile-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
   border: none;
-  padding: 10px 45px;
+  padding: 14px 16px;
   cursor: pointer;
-  font-weight: 500;
-  font-size: 16px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #65676b;
+  border-radius: 8px;
+  transition: background-color 0.2s, color 0.2s;
   position: relative;
-  transition: color 0.2s;
+  white-space: nowrap;
+  margin-left: 30px;
 }
 
-.profile-tabs button:hover {
-  color: #007bff;
+.modern-profile-tabs button:hover {
+  background-color: #f2f2f2;
 }
 
-.profile-tabs button.active {
-  color: #1877f2;
+.modern-profile-tabs button.active {
+  color: #0866ff; 
 }
 
-.profile-tabs button {
-  outline: none;       /* ❌ bỏ viền khi focus */
-  border: none;
-}
-
-.profile-tabs button:focus {
-  outline: none;
-}
-
-.profile-tabs button:active {
-  outline: none;
-}
-.profile-tabs button.active::after {
+.modern-profile-tabs button.active::after {
   content: "";
   position: absolute;
-  bottom: -8px;
+  bottom: 0;
   left: 0;
   width: 100%;
-  height: 2px;
-  background: #1877f2;
-  border-radius: 2px;
-  margin-bottom: 7px;
+  height: 3px;
+  background: #0866ff;
+  border-radius: 3px 3px 0 0;
+}
+.modern-profile-tabs button:hover,
+.modern-profile-tabs button:focus,
+.modern-profile-tabs button:focus-visible,
+.modern-profile-tabs button:active {
+  outline: none;
+  border: none;
+  box-shadow: none;
 }
 
-/* ===== Nội dung bài viết ===== */
-.p-post {
-  flex: 1;
-  max-width: 1300px;
-  margin: 0 auto;       /* căn giữa */
-  overflow-y: auto;
-  padding-bottom: 50px;
+/* =========================================
+   KHU VỰC TẠO BÀI VIẾT (CREATE POST)
+========================================= */
+/* =========================================
+   WIDGET TẠO BÀI VIẾT (SÁNG TẠO - DASHBOARD STYLE)
+========================================= */
+.modern-compose-widget {
+  padding: 24px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(145deg, #ffffff, #fcfcfd);
+  /* Bóng đổ đen mờ tinh tế, tách biệt hẳn với feed bài viết bên dưới */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); 
+  gap: 20px;
 }
 
-/* ===== Post Card ===== */
-.post-card {
-  background-color: #fff;
-  padding: 15px 20px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.post-card .post-header {
+/* Khu vực Text bên trái */
+.compose-prompt-area {
   display: flex;
   align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.compose-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px; /* Bo góc mềm Squircle thay vì tròn xoe */
+  background: rgba(8, 102, 255, 0.08);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.compose-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.compose-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.compose-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #65676b;
+  line-height: 1.4;
+}
+
+/* Khu vực Nút bấm bên phải */
+.compose-action-row {
+  display: flex;
   gap: 10px;
-  margin-bottom: 10px;
+  align-items: center;
 }
 
-.post-card .avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.post-card .author-name {
+.compose-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 12px;
+  height: 42px;
+  cursor: pointer;
+  font-family: inherit;
   font-weight: 600;
   font-size: 14px;
+  transition: all 0.2s ease;
 }
 
-.post-card .post-time {
-  font-size: 12px;
-  color: #888;
+/* Nút CTA chính nổi bật */
+.btn-main {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  padding: 0 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.post-card .post-content h4 {
-  margin: 5px 0;
-  font-size: 16px;
+.btn-main:hover {
+  background-color: #333333;
+  transform: translateY(-2px);
 }
 
-.post-card .post-content p {
-  font-size: 14px;
-  color: #333;
+/* Các nút shortcut mờ ảo */
+.btn-media {
+  background-color: #f0f2f5;
+  color: #4a4a4a;
+  padding: 0 14px;
 }
 
-/* ===== Post Actions (archived) ===== */
-.post-card .post-actions {
-  margin-top: 10px;
-  display: flex;
-  gap: 10px;
+.btn-media:hover {
+  background-color: #e4e6e9;
+  color: #1a1a1a;
 }
 
-.post-card .post-actions button {
-  padding: 5px 10px;
-  font-size: 12px;
-  cursor: pointer;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
-  transition: all 0.2s;
-}
-
-.post-card .post-actions button:hover {
-  background: #f0f0f0;
-}
-
-/* ===== Responsive ===== */
+/* Responsive cho màn hình nhỏ */
 @media screen and (max-width: 768px) {
-  .header, .p-post {
-    max-width: 95%;
+  .modern-compose-widget {
+    flex-direction: column;
+    align-items: flex-start;
   }
-
-  .profile-tabs {
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-
-  .lineTab {
-    width: 90%;
+  
+  .compose-action-row {
+    width: 100%;
+    justify-content: flex-end;
   }
 }
 
-.storyBlock-profile {
-  width: 650px;
-  height: 100px;
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  overflow-x: auto;
-  border-radius: 10%;
-  margin-left: 100px;
-
-}
-.storyBlock-profile::-webkit-scrollbar {
-  display: none;
+/* Khu vực hiển thị Post Feed */
+.feed-content-area {
+  width: 100%;
+  padding-bottom: 40px;
 }

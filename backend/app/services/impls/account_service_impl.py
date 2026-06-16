@@ -63,8 +63,9 @@ class AccountServiceImpl(IAccountService):
         await set_otp(f"user:{register_user_req.email}", json.dumps(user_data), expire=180)
 
         await send_email(
+            f"UTEZone",
             register_user_req.email,
-            "[UTEForum]: Verify your account",
+            "[UTEZone]: Xác thực OTP để hoàn tất đăng ký tài khoản",
             f"Your OTP is: {otp}"
         )
 
@@ -149,8 +150,9 @@ class AccountServiceImpl(IAccountService):
         await set_otp(f"user:{forgot_password_req.email}", json.dumps(user_data), expire=180)
 
         await send_email(
+            f"UTEZone",
             forgot_password_req.email,
-            "[UTEForum]: Authenticate to change password",
+            "[UTEZone]: Xác thực OTP để thay đổi mật khẩu",
             f"Your OTP is: {otp}"
         )
 

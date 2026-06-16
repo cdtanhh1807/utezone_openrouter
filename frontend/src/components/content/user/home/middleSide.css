@@ -10,9 +10,10 @@
   overflow-y: auto;
   margin-left: 40px;
   background-color: rgb(246, 246, 248);
+  
 }
 .listPostHome {
-  
+    margin-left: 40px;
 }
 .storyBlock {
   width: 550px;
@@ -21,8 +22,7 @@
   align-items: center;
   gap: 30px;
   overflow-x: auto;
-  border-radius: 10%;
-  margin-right: 150px;
+  border-radius: 10%; 
 }
 .storyBlock::-webkit-scrollbar {
   display: none;

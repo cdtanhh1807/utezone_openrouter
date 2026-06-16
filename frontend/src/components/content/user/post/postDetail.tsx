@@ -32,6 +32,7 @@ import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import SummaryBox from "../summary/summaryPost";
 import { aiAPI } from "../../../../services/AIService";
 import SaveToCollectionModal from "../profile/SaveToCollectionModal";
+import CommentVisibilityModal from "./CommentVisibilityModal";
 
 interface DetailPostProps {
   activePost: Post;
@@ -99,6 +100,13 @@ const PostDetail: React.FC<DetailPostProps> = ({
   const [expandedPosts, setExpandedPosts] = useState<{
     [key: string]: boolean;
   }>({});
+  const [isRoleEditModalOpen, setIsRoleEditModalOpen] = useState(false);
+
+  const [commentVisibility, setCommentVisibility] = useState<
+    "public" | "follow" | "private"
+  >("public");
+
+  const [roleEditingPost, setRoleEditingPost] = useState<Post | null>(null);
   const [openShareModal, setOpenShareModal] = useState(false);
   const [sharePost, setSharePost] = useState<Post | null>(null);
   const [reloadFlag, setReloadFlag] = useState(false);
@@ -136,6 +144,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
   const [replyCountMap, setReplyCountMap] = useState<Record<string, number>>(
     {},
   );
+  const [canRoleComment, setCanRoleComment] = useState(true);
 
   const [replyRefresh, setReplyRefresh] = useState(0);
   const [openReplyMap, setOpenReplyMap] = useState<Record<string, boolean>>({});
@@ -819,6 +828,40 @@ const PostDetail: React.FC<DetailPostProps> = ({
       [post._id]: false,
     }));
   };
+  const handleRoleEdit = (post: Post) => {
+    setRoleEditingPost(post);
+
+    setCommentVisibility(
+      (post.comment_visibility as "public" | "follow" | "private") || "public",
+    );
+
+    setIsRoleEditModalOpen(true);
+
+    setPostMenuOpen((prev) => ({
+      ...prev,
+      [post._id]: false,
+    }));
+  };
+  const handleSaveCommentVisibility = async () => {
+    if (!roleEditingPost) return;
+
+    await postAPI.updatePost(roleEditingPost._id, {
+      comment_visibility: commentVisibility,
+    });
+
+    setPosts((prev) =>
+      prev.map((p) =>
+        p._id === roleEditingPost._id
+          ? {
+              ...p,
+              comment_visibility: commentVisibility,
+            }
+          : p,
+      ),
+    );
+
+    setIsRoleEditModalOpen(false);
+  };
 
   const handleDeletePost = async (postId: string) => {
     if (!postId) return;
@@ -996,9 +1039,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
     focusCommentInput();
   };
 
-  const uploadFiles = async (
-    files: File[],
-  ): Promise<UploadedCommentFile[]> => {
+  const uploadFiles = async (files: File[]): Promise<UploadedCommentFile[]> => {
     const uploadPromises = files.map(async (file) => {
       const uploadRes = await FileService.uploadPictureDeferred(file);
 
@@ -1228,6 +1269,44 @@ const PostDetail: React.FC<DetailPostProps> = ({
     return vnDate.toLocaleString("vi-VN");
   }
 
+  const checkCommentPermission = async (post: Post): Promise<boolean> => {
+    try {
+      if (post.comment_visibility === "public") {
+        return true;
+      }
+
+      if (post.comment_visibility === "private") {
+        return currentUserEmail === post.createdBy;
+      }
+
+      if (post.comment_visibility === "follow") {
+        if (currentUserEmail === post.createdBy) {
+          return true;
+        }
+
+        const relation = await AccountService.get_account_relation(
+          post.createdBy,
+        );
+
+        return !!relation.followers?.includes(currentUserEmail!);
+      }
+
+      return false;
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (!activePost) return;
+    const loadPermission = async () => {
+      const result = await checkCommentPermission(activePost);
+      setCanRoleComment(result);
+    };
+    loadPermission();
+  }, [activePost, currentUserEmail]);
+
   const activeModalIndex = getIndex(activePost._id);
   const activeModalMediaUrl =
     activePost.thumbnails_url?.[activeModalIndex] || "";
@@ -1432,6 +1511,16 @@ const PostDetail: React.FC<DetailPostProps> = ({
                             </div>
 
                             <div
+                              className="menuItem"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRoleEdit(activePost);
+                              }}
+                            >
+                              💬 Ai có thể bình luận?
+                            </div>
+
+                            <div
                               className="menuItem delete"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -1458,7 +1547,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
                                 className="menuItem"
                                 onClick={() => handleReport(activePost)}
                               >
-                                🚩 Báo cáo bài đăng
+                                🚩 Tố cáo bài viết
                               </div>
                             )}
                             <div
@@ -1769,7 +1858,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
                                             textAlign: "left",
                                           }}
                                         >
-                                          🚩 Báo cáo bình luận
+                                          🚩 Tố cáo bình luận
                                         </button>
                                       )}
                                     </div>
@@ -2043,18 +2132,29 @@ const PostDetail: React.FC<DetailPostProps> = ({
                 {/* EMOJI */}
                 <div className="emojiWrapper">
                   <InsertEmoticonOutlinedIcon
-                    sx={{ fontSize: 22, color: "#777", cursor: "pointer" }}
+                    sx={{
+                      fontSize: 22,
+                      color: canRoleComment ? "#777" : "#cbd5e1",
+                      opacity: canRoleComment ? 1 : 0.5,
+                    }}
                     onClick={(e) => {
+                      if (!canComment) return;
+
                       e.stopPropagation();
+
                       setOpenEmojiPicker((prev) =>
                         prev?.type === "modal"
                           ? null
-                          : { type: "modal", postId: activePost._id || "" },
+                          : {
+                              type: "modal",
+                              postId: activePost._id || "",
+                            },
                       );
                     }}
                   />
 
-                  {openEmojiPicker?.type === "modal" &&
+                  {canRoleComment &&
+                    openEmojiPicker?.type === "modal" &&
                     openEmojiPicker.postId === (activePost._id || "") && (
                       <div className="emojiPickerContainer">
                         <EmojiPicker
@@ -2068,13 +2168,22 @@ const PostDetail: React.FC<DetailPostProps> = ({
 
                 {/* UPLOAD MEDIA */}
                 <div className="uploadWrapper">
-                  <label htmlFor="commentUpload">
-                    <AddToPhotosIcon />
+                  <label
+                    htmlFor={canRoleComment ? "commentUpload" : undefined}
+                    className={!canRoleComment ? "disabledUpload" : ""}
+                  >
+                    <AddToPhotosIcon
+                      sx={{
+                        color: canRoleComment ? undefined : "#bdbdbd",
+                        cursor: canRoleComment ? "pointer" : "not-allowed",
+                      }}
+                    />
                   </label>
 
                   <input
                     id="commentUpload"
                     type="file"
+                    disabled={!canRoleComment}
                     style={{ display: "none" }}
                     onChange={handleSelectFiles}
                   />
@@ -2091,6 +2200,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
 
                   {/* Textarea thật */}
                   <textarea
+                    disabled={!canRoleComment}
                     ref={commentInputRef}
                     value={
                       activePost?._id ? commentText[activePost._id] || "" : ""
@@ -2142,7 +2252,13 @@ const PostDetail: React.FC<DetailPostProps> = ({
                         highlight.scrollTop = target.scrollTop;
                       }
                     }}
-                    placeholder="Bình luận..."
+                    placeholder={
+                      !canRoleComment
+                        ? activePost?.comment_visibility === "private"
+                          ? "Chỉ chủ bài viết mới được bình luận"
+                          : "Bạn cần theo dõi chủ bài viết để bình luận"
+                        : "Bình luận..."
+                    }
                     className="commentBox"
                     rows={1}
                     onKeyDown={(e) => {
@@ -2329,6 +2445,13 @@ const PostDetail: React.FC<DetailPostProps> = ({
           }}
         />
       )}
+      <CommentVisibilityModal
+        open={isRoleEditModalOpen}
+        value={commentVisibility}
+        onChange={setCommentVisibility}
+        onClose={() => setIsRoleEditModalOpen(false)}
+        onSave={handleSaveCommentVisibility}
+      />
     </div>
   );
 };

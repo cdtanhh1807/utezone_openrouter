@@ -21,6 +21,10 @@ export interface SuggestFollowRequest {
   limit?: number;
 }
 
+export interface CheckFollowedResponse {
+  is_following: boolean;
+}
+
 export interface SuggestFollowItem {
   id: string;
   email: string;
@@ -108,6 +112,19 @@ const AccountService = {
         // ❗ email KHÔNG cần gửi vì BE lấy từ token
       },
     });
+    return res.data;
+  },
+
+  check_followed: async (
+    requesterEmail: string,
+    postOwnerEmail: string
+  ): Promise<CheckFollowedResponse> => {
+    const res = await axiosInstance.get(
+      `/account/check_followed/${encodeURIComponent(
+        requesterEmail
+      )}/${encodeURIComponent(postOwnerEmail)}`
+    );
+
     return res.data;
   },
 };

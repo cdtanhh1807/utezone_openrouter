@@ -28,6 +28,7 @@ interface CreatePostProps {
   onClose: () => void;
   editingPost?: Post | null;
   onPostSaved?: () => void;
+  initialStep?: 0 | 1 | 2;
 }
 
 const backdrop = { hidden: { opacity: 0 }, visible: { opacity: 1 } };
@@ -41,6 +42,7 @@ const CreatePost = ({
   onClose,
   editingPost,
   onPostSaved,
+  initialStep = 0,
 }: CreatePostProps) => {
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
   const [content, setContent] = useState("");
@@ -108,8 +110,13 @@ const CreatePost = ({
       setFiles([]);
     }
     setCurrentIndex(0);
-    setStep(0);
+    setStep(initialStep);
   }, [editingPost]);
+  useEffect(() => {
+    if (isOpen) {
+      setStep(initialStep);
+    }
+  }, [isOpen, initialStep]);
 
   const isVideo = (url: string) => {
     // blob URL (file mới chọn) → kiểm tra bằng mime type ở chỗ khác
@@ -205,7 +212,7 @@ const CreatePost = ({
         thumbnails: fileIds,
         visibility,
         layout,
-
+        comment_visibility: "public",
         category: selectedDepartments.length === 0 ? [] : selectedDepartments,
 
         postType: "short",
@@ -438,27 +445,51 @@ const CreatePost = ({
                   {previews.length > 0 ? (
                     /* ===== CÓ ẢNH ===== */
                     <div className="compose-slider">
-                      {files[currentIndex]?.type.startsWith("video/") ||
-                      isVideo(previews[currentIndex]) ? (
-                        <video controls className="compose-media">
-                          <source
-                            src={
-                              files[currentIndex]
-                                ? URL.createObjectURL(files[currentIndex])
-                                : previews[currentIndex]
-                            }
-                          />
-                        </video>
-                      ) : (
-                        <img
-                          src={
-                            files[currentIndex]
-                              ? URL.createObjectURL(files[currentIndex])
-                              : previews[currentIndex]
-                          }
-                          className="compose-media"
-                        />
-                      )}
+                      {(() => {
+                        const mediaSrc = files[currentIndex]
+                          ? URL.createObjectURL(files[currentIndex])
+                          : previews[currentIndex];
+
+                        const isCurrentVideo =
+                          files[currentIndex]?.type.startsWith("video/") ||
+                          isVideo(previews[currentIndex]);
+
+                        return (
+                          <>
+                            {/* Background Blur */}
+                            {isCurrentVideo ? (
+                              <video
+                                className="compose-media-blur"
+                                muted
+                                playsInline
+                                autoPlay
+                                loop
+                              >
+                                <source src={mediaSrc} />
+                              </video>
+                            ) : (
+                              <img
+                                src={mediaSrc}
+                                className="compose-media-blur"
+                                alt=""
+                              />
+                            )}
+
+                            {/* Main Media */}
+                            {isCurrentVideo ? (
+                              <video controls className="compose-media">
+                                <source src={mediaSrc} />
+                              </video>
+                            ) : (
+                              <img
+                                src={mediaSrc}
+                                className="compose-media"
+                                alt=""
+                              />
+                            )}
+                          </>
+                        );
+                      })()}
 
                       {currentIndex > 0 && (
                         <ChevronLeftOutlinedIcon

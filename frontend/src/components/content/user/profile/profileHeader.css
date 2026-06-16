@@ -1,259 +1,324 @@
-.profileHeader {
-  padding: 20px 40px;
-  padding-bottom: 0px;
-  border-radius: 12px;
-  background-color: #fff;
-  max-width: 890px;
-}
-.p-Header {
+/* Container tổng thể */
+/* Container tổng thể */
+.modern-profile-container {
+  width: 100%; /* Ép Header giãn rộng 100% theo Wrapper cha */
+  /* Đã gỡ bỏ max-width: 1050px và margin: 0 auto để không bị xung đột */
   display: flex;
-  gap: 90px;
-  padding: 20px 40px;
-  padding-bottom: 0px;
-  border-radius: 12px;
-  background-color: #fff;
-  align-items: center;
-  justify-content: flex-start;
-  max-width: 1000px;
+  flex-direction: column;
+  gap: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  box-sizing: border-box; /* Đảm bảo padding không làm phình chiều rộng */
 }
 
-/* Avatar */
-.header-imageDIv {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%; /* khung tròn */
-  padding: 5px;
-  border: 3px solid red;
-  overflow: hidden; /* chặn tràn */
+/* Các CSS còn lại bên dưới của bạn giữ nguyên không đổi... */
+/* Card Header chính */
+.modern-header-card {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); 
+  border: 1px solid #eaeaea;
+  position: relative;
+}
+
+/* ... Giữ nguyên toàn bộ phần còn lại của profileHeader.css ... */
+
+/* Khu vực ảnh bìa */
+.profile-cover {
+  width: 100%;
+  height: 240px;
+  background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+  position: relative;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Nhóm thông tin căn giữa */
+.profile-core-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px 24px 20px;
+  position: relative;
+}
+
+/* Wrapper Avatar (Kéo lên đè vào ảnh bìa) */
+.avatar-wrapper {
+  position: relative;
+  margin-top: -85px; /* Kéo đè lên cover */
+  z-index: 2;
+  margin-bottom: 15px;
+}
+
+/* Vòng tròn bọc Avatar */
+.avatar-ring {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  padding: 4px;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: center;
   align-items: center;
-  background: white;
 }
 
 .profile-avatar {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain; /* ảnh luôn hiển thị đầy đủ */
-  background: white;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #f0f2f5;
 }
 
-
-
-/* Thông tin tổng thể */
-.profile-info {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  flex: 1;
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #f0f2f5;
 }
 
-/* Hàng username + button */
-.profile-username-time {
+/* Nút tích xanh giả lập */
+.verified-badge {
+  position: absolute;
+  bottom: 10px;
+  right: 15px;
+  background: #fff;
+  border-radius: 50%;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 30px;
+  padding: 2px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 
-.profile-username {
-  font-size: 19px;
-  font-weight: 700;
-  margin-top: 2px;
+/* Chi tiết User */
+.user-details-section {
+  text-align: center;
+  margin-bottom: 20px;
 }
+
+.profile-name {
+  font-size: 28px;
+  font-weight: 800;
+  color: #050505;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.5px;
+}
+
+.profile-headline {
+  font-size: 15px;
+  font-weight: 600;
+  color: #65676b;
+  margin: 0 0 8px 0;
+}
+
+.profile-bio {
+  font-size: 15px;
+  color: #65676b;
+  margin: 0;
+  max-width: 600px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+/* Khu vực Buttons */
+.profile-actions-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.profile-actions-wrapper button{
+    margin-right: 10px;
+}
+
+.action-buttons-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.menu-dot-wrapper {
+  position: relative;
+}
+
+/* STYLES CÁC NÚT (Tái sử dụng class cũ nhưng đắp CSS mới) */
+.btn-modern,
 .btn-edit-profile,
 .btn-follow,
-.btn-message {
-  padding: 6px 14px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  min-width: 90px;
-  font-weight: 600;
-  transition: 0.2s ease;
-}
-.btn-unfollow {
-  padding: 6px 14px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  min-width: 120px;
-  font-weight: 600;
-  transition: 0.2s ease;
-}
+.btn-unfollow,
+.btn-message,
 .dot-btn-message {
-  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 7px;
+  font-size: 15px;
   font-weight: 600;
-  transition: 0.2s ease;
-
-  background: transparent;
-  outline: none;
+  transition: all 0.2s ease;
+  height: 30px;
+  box-sizing: border-box;
 }
 
-/* khi đang nhấn */
-.dot-btn-message:active {
-  outline: none;
-  box-shadow: none;
-}
-
-/* khi được focus (click, tab, giữ chuột) */
-.dot-btn-message:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-
-.btn-edit-profile:hover{
-  background-color: #f5efef
-}
-
+/* Nút Theo dõi (Primary FB/LinkedIn Blue) */
 .btn-follow {
-  background-color: #0095f6;
-  color: white;
+  background-color: #0866ff;
+  color: #ffffff;
 }
 
 .btn-follow:hover {
-  background-color: #007ad9;
+  background-color: #0054d1;
 }
 
-.btn-message {
-  background-color: #efefef;
-  color: #333;
+/* Nút Bỏ theo dõi & Nút Nhắn tin (Secondary Gray) */
+.btn-unfollow,
+.btn-message,
+.btn-edit-profile {
+  background-color: #e4e6eb;
+  color: #050505;
 }
 
-.btn-message:hover {
-  background-color: #e0e0e0;
-}
-.btn-unfollow {
-  background-color: #efefef;
-  color: #333;
+.btn-unfollow:hover,
+.btn-message:hover,
+.btn-edit-profile:hover {
+  background-color: #d8dadf;
 }
 
-.btn-unfollow:hover {
-  background-color: #e0e0e0;
+/* Nút 3 chấm */
+.dot-btn-message {
+  background-color: #e4e6eb;
+  color: #050505;
+  padding: 8px;
+  width: 48px;
 }
 
-.profile-overview {
+.dot-btn-message:hover {
+  background-color: #d8dadf;
+}
+
+/* Thanh Stats (Followers, Posts...) */
+.profile-stats-bar {
   display: flex;
-  gap: 20px;
-}
-
-.number {
-  display: flex;
+  justify-content: space-evenly;
   align-items: center;
-  gap: 8px;
+  padding: 18px 20px;
+  border-top: 1px solid #eaebed;
+  background-color: #ffffff;
 }
 
-.count {
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.label {
-  font-size: 14px;
-    color:rgb(45, 150, 211) ;
-}
-.profile-description {
+.stat-item {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  text-align: left;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
 }
-.full-name {
+
+.stat-label {
+  font-size: 14px;
   font-weight: 600;
-}
-.bio {
-  font-size: 14px;
-  font-style: italic;
-  display: block;   
-  max-width: 530px;   
-  word-wrap: break-word; 
-  white-space: normal;
-}
-/* ===== MENU 3 CHẤM ===== */
-.account-menu {
-  position: absolute;
-  top: 42px;              /* nằm dưới nút 3 chấm */
-  right: 0;
-  min-width: 180px;
-
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-
-  z-index: 1000;
-  overflow: hidden;
+  color: #65676b;
 }
 
-/* ===== ITEM TRONG MENU ===== */
-.menu-item {
-  padding: 10px 14px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  white-space: nowrap;
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #050505;
 }
 
-/* hover thường */
-.menu-item:hover {
-  background-color: #f5f5f5;
-}
-
-/* ===== ITEM NGUY HIỂM ===== */
-.menu-item.danger {
-  color: #e53935;
-}
-
-.menu-item.danger:hover {
-  background-color: #ffecec;
-}
-
-.profile-intro-section {
-  width: 50%;
-  margin-top: 20px;
+/* Khu vực thông tin phụ (Intro) */
+.modern-intro-section {
   display: flex;
-  justify-content: center;
-  margin-left: 330px;
+  justify-content: flex-start; /* Nếu muốn căn trái như sidebar */
+  width: 100%;
 }
 
 .intro-card {
   width: 100%;
-  max-width: 850px;
-  background: white;
-  border-radius: 14px;
-  padding: 18px 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e5e7eb;
+  max-width: 400px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid #eaeaea;
 }
 
 .intro-title {
   font-size: 20px;
   font-weight: 700;
+  color: #050505;
+  margin-top: 0;
   margin-bottom: 16px;
-}
-
-.intro-bio {
-  font-size: 15px;
-  color: #333;
-  margin-bottom: 18px;
-  line-height: 1.5;
 }
 
 .intro-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .intro-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-size: 15px;
-  color: #444;
+  color: #050505;
+}
+
+.intro-icon {
+  color: #8c939d;
+  font-size: 24px;
+}
+
+/* ===== MENU 3 CHẤM (Glassmorphism Effect) ===== */
+.account-menu.glass-panel {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.menu-item {
+  padding: 10px 14px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+  color: #050505;
+}
+
+.menu-item:hover {
+  background-color: #f2f2f2;
+}
+
+.menu-item.danger {
+  color: #e41e3f;
+}
+
+.menu-item.danger:hover {
+  background-color: #fdeced;
+}
+
+/* Utils */
+.loading-state, .error-state {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #65676b;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }

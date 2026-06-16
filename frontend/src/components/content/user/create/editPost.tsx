@@ -1,4 +1,3 @@
-import "./editPost.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -15,6 +14,7 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import DepartmentMultiSelect from "./departmentSelect";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { ToastService } from "../../../../services/ToastService";
+import "./editPost.css";
 
 interface EditPostProps {
   isOpen: boolean;

@@ -508,7 +508,7 @@ export default function ReplyComment({
                             }}
                             style={btnStyle}
                           >
-                            🚩 Báo cáo bình luận
+                            🚩 Tố cáo bình luận
                           </button>
                         )
                       )}

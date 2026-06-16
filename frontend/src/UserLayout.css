@@ -45,14 +45,14 @@ select {
 
 /* LeftSide (menu bên trái) */
 .main-left-side {
-  flex: 0.18;    
+  flex: 0.2;    
   background-color: rgb(250 250, 250);
   overflow-y: auto; 
-  border-right: 1px solid #999999;
+
 }
 
 .main-right-side {
-  flex: 0.82;
+  flex: 0.8;
   background-color: rgb(250 250, 250);
   overflow-y: auto;
   overflow-x: hidden; 

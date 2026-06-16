@@ -121,23 +121,24 @@ const StoryBlock: React.FC = () => {
       {!storys || storys.length === 0 ? (
         <p></p>
       ) : (
-        storys.map((u) => (
-          <div className="storyPaticular" key={u.userId}>
+        storys.map((u, index) => (
+          /* THÊM CLASS ĐỘNG story-ring-${index % 6} DỰA VÀO VỊ TRÍ PHẦN TỬ */
+          <div className={`storyPaticular story-ring-${index % 6}`} key={u.userId}>
             <div
-              className="imageDIv"
+              className="imageDIv-story"
               onClick={() => {
                 setStoryStartUserId(u.userId);
                 setIsStoryModalOpen(true);
               }}
             >
               <img
-                className="statusImg"
+                className="statusImg-story"
                 src={userInfoMap[u.userId]?.avatar || ""}
                 alt={u.userId}
               />
             </div>
             <div className="profileName">
-              @{userInfoMap[u.userId]?.fullName || u.userId}
+              {userInfoMap[u.userId]?.fullName || u.userId}
             </div>
           </div>
         ))

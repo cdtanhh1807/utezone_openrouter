@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AccountService from "../../../../services/AccountService";
 import type { FollowBlockRequest } from "../../../../services/AccountService";
+import RemoveIcon from '@mui/icons-material/Remove';
 
 interface UnFollowButtonProps {
   ownerEmail: string;
@@ -28,6 +29,7 @@ export const UnFollowButton = ({ ownerEmail, clientEmail, onUnFollowSuccess }: U
 
   return (
     <button className="btn-unfollow" onClick={handleUnFollow} disabled={loading}>
+      {!loading && <RemoveIcon fontSize="small" />}
       {loading ? "Đang xử lý..." : "Bỏ theo dõi"}
     </button>
   );

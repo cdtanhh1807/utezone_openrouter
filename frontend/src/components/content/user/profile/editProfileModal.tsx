@@ -163,7 +163,7 @@ const EditProfileModal = ({ user, onClose }: ModalProps) => {
 
         {/* DESCRIPTION */}
         <div className="field">
-          <label className="edit-title">Description</label>
+          <label className="edit-title">Mô tả</label>
           <textarea
             rows={3}
             value={description}
@@ -179,8 +179,8 @@ const EditProfileModal = ({ user, onClose }: ModalProps) => {
 
         {/* Buttons */}
         <div className="modal-actions">
-          <button onClick={onClose} className="btn-cancel">Cancel</button>
-          <button onClick={handleSave} className="btn-save">Save</button>
+          <button onClick={onClose} className="btn-cancel">Hủy</button>
+          <button onClick={handleSave} className="btn-save">Lưu</button>
         </div>
       </div>
     </div>

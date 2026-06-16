@@ -13,6 +13,7 @@ class ChannelService:
         self.chatrooms_col = db.chat_rooms
         self.sessions_col = db.user_sessions
         self.messages_col = db.messages
+        self.channel_ai_messages_col = db.channel_ai_messages
 
     # ==================== CHANNEL CRUD ====================
 
@@ -46,6 +47,15 @@ class ChannelService:
             created_by=owner_email
         )
         await self.chatrooms_col.insert_one(general_room.model_dump())
+
+        ai_room = ChatRoom(
+            channel_id=channel.channel_id,
+            name="UTEZoneAI",
+            description="Phòng điều khiển bằng UTEZoneAI dành cho chủ kênh",
+            room_type="ai",
+            created_by=owner_email
+        )
+        await self.chatrooms_col.insert_one(ai_room.model_dump())
 
         return channel
 
@@ -243,6 +253,9 @@ class ChannelService:
         if channel.owner_email != owner_email:
             raise ValueError("Chỉ chủ channel mới có thể tạo chat room")
 
+        if room_type == "ai":
+            raise ValueError("Không thể tạo phòng UTEZoneAI thủ công")
+
         chatroom = ChatRoom(
             channel_id=channel_id,
             name=name,
@@ -261,12 +274,29 @@ class ChannelService:
             return ChatRoom(**data)
         return None
 
-    async def get_channel_chat_rooms(self, channel_id: str) -> List[dict]:
+    async def get_channel_chat_rooms(self, channel_id: str, user_email: str = "") -> List[dict]:
+        channel = await self.get_channel(channel_id)
+
+        if not channel:
+            return []
+
+        is_owner = channel.owner_email.strip().lower() == user_email.strip().lower()
+
+        if is_owner:
+            await self.ensure_channel_ai_room(channel_id, user_email)
+
         chatrooms = []
         cursor = self.chatrooms_col.find({"channel_id": channel_id}).sort("created_at", 1)
+
         async for data in cursor:
             data.pop("_id", None)
+
+            # Chỉ chủ channel mới thấy phòng UTEZoneAI
+            if data.get("room_type") == "ai" and not is_owner:
+                continue
+
             chatrooms.append(data)
+
         return chatrooms
 
     async def update_chat_room(self, room_id: str, owner_email: str, **kwargs) -> Optional[ChatRoom]:
@@ -765,5 +795,35 @@ class ChannelService:
             "muted_until": muted_until,
             "reason": getattr(member, "mute_reason", None) or "Bạn đang bị cấm gửi tin nhắn trong kênh này"
         }
+
+    async def ensure_channel_ai_room(self, channel_id: str, owner_email: str) -> Optional[ChatRoom]:
+        channel = await self.get_channel(channel_id)
+
+        if not channel:
+            return None
+
+        if channel.owner_email.strip().lower() != owner_email.strip().lower():
+            return None
+
+        existing = await self.chatrooms_col.find_one({
+            "channel_id": channel_id,
+            "room_type": "ai"
+        })
+
+        if existing:
+            existing.pop("_id", None)
+            return ChatRoom(**existing)
+
+        ai_room = ChatRoom(
+            channel_id=channel_id,
+            name="UTEZoneAI",
+            description="Phòng điều khiển bằng UTEZoneAI dành cho chủ kênh",
+            room_type="ai",
+            created_by=owner_email
+        )
+
+        await self.chatrooms_col.insert_one(ai_room.model_dump())
+
+        return ai_room
 
 channel_service = ChannelService()

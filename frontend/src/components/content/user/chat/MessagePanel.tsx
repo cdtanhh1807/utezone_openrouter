@@ -223,21 +223,23 @@ const MessagePanel: React.FC<Props> = ({ otherEmail }) => {
                   </div>
                 )}
 
-                {(m.file ?? []).length > 0 && (
-                  <div className="msg-files">
-                    {(m.file ?? []).map((url, idx) => (
-                      <a
-                        key={idx}
-                        href={url}
-                        className="chat-file"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        📎 File {idx + 1}
-                      </a>
-                    ))}
-                  </div>
-                )}
+                {(m.file ?? []).map((file, idx) => {
+                  const fileName = decodeURIComponent(
+                    file.split("/").pop()?.split("?")[0] ?? `File ${idx + 1}`,
+                  ).replace(/^[^_]+_/, "");
+
+                  return (
+                    <a
+                      key={idx}
+                      href={file}
+                      className="chat-file"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      📎 {fileName}
+                    </a>
+                  );
+                })}
               </div>
             </React.Fragment>
           );

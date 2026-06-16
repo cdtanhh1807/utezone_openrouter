@@ -16,6 +16,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import ReportModal from "../report/reportModal";
 import { useNavigate } from "react-router-dom";
 import { ToastService } from "../../../../services/ToastService";
+import SendIcon from '@mui/icons-material/Send';
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneIcon from "@mui/icons-material/Phone";
 import CakeIcon from "@mui/icons-material/Cake";
@@ -56,12 +57,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
   }
   const currentUserEmail: string | null = email || decodedEmail;
 
-  console.log(
-    "Current User Email in ProfileHeader:",
-    decodedEmail,
-    currentUserEmail,
-  );
-
   useEffect(() => {
     if (!openMessage) return;
 
@@ -77,6 +72,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [openMessage]);
+
   useEffect(() => {
     const fetchUser = async () => {
       if (!currentUserEmail) {
@@ -100,6 +96,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
 
     fetchUser();
   }, [currentUserEmail]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -116,20 +113,18 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
     };
   }, [openMenu]);
 
-  if (loading) return <div>Đang tải...</div>;
-  if (!user) return <div>Không tìm thấy thông tin người dùng.</div>;
+  if (loading) return <div className="loading-state">Đang tải dữ liệu...</div>;
+  if (!user) return <div className="error-state">Không tìm thấy thông tin người dùng.</div>;
 
   const followersCount = user?.followers?.length || 0;
   const followingCount = user?.followed?.length || 0;
   const postsCount = posts?.length || 0;
 
   const isCurrentUser = decodedEmail === currentUserEmail;
-
   const hasFollowed = user?.followers?.includes(decodedEmail || "") || false;
 
   const handleSendMessage = async () => {
     if (!currentUserEmail) return;
-
     try {
       await messageAPI.send(email!, { content: "Bắt đầu trò chuyện!" });
       console.log("Đã gửi tin nhắn hello");
@@ -140,11 +135,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
 
   const checkConversationExists = async (): Promise<boolean> => {
     if (!decodedEmail || !currentUserEmail) return false;
-
     try {
       const res = await messageAPI.getConversation(currentUserEmail);
       const messages = res.data || [];
-
       const myConversationId1 = `${decodedEmail}_${currentUserEmail}`;
       const myConversationId2 = `${currentUserEmail}_${decodedEmail}`;
 
@@ -160,28 +153,53 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
   };
 
   return (
-    <>
-    <div className="profileHeader">
-      <div className="p-Header">
-        <div className="header-imageDIv">
-          {user.avatar && (
-            <img className="profile-avatar" src={user.avatar} alt="avatar" />
-          )}
-        </div>
+    <div className="modern-profile-container">
+      {/* 1. KHU VỰC HEADER CHÍNH (COVER + AVATAR + INFO + STATS) */}
+      <div className="modern-header-card">
+        {/* Cover Photo Xóa font mặc định thay bằng dải màu gradient sinh động */}
+        <div className="profile-cover"></div>
 
-        <div className="profile-info">
-          <div className="profile-username-time">
-            <span className="profile-username">{user.fullName}</span>
+        <div className="profile-core-info">
+          {/* Avatar Section */}
+          <div className="avatar-wrapper">
+            <div className="avatar-ring">
+              {user.avatar ? (
+                <img className="profile-avatar" src={user.avatar} alt="avatar" />
+              ) : (
+                <div className="avatar-placeholder"></div>
+              )}
+            </div>
+            {/* Fake Verified Badge */}
+            <div className="verified-badge">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="#0866FF"/>
+                <path d="M16.5 8.5L10.5 14.5L7.5 11.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
 
+          {/* User Info Section */}
+          <div className="user-details-section">
+            <h1 className="profile-name">
+              {user.fullName}
+            </h1>
+            <p className="profile-headline">
+              {user.department ? `KHOA ${user.department.toUpperCase()}` : "Sinh viên HCMUTE"}
+            </p>
+            <p className="profile-bio">{user.description || "Chưa cập nhật tiểu sử."}</p>
+          </div>
+
+          {/* Action Buttons Section */}
+          <div className="profile-actions-wrapper">
             {isCurrentUser ? (
               <button
-                className="btn-edit-profile"
+                className="btn-modern btn-edit-profile"
                 onClick={() => setIsModalOpen(true)}
               >
-                <EditIcon sx={{ fontSize: 15 }} />
+                <EditIcon sx={{ fontSize: 18 }} /> Chỉnh sửa hồ sơ
               </button>
             ) : (
-              <>
+              <div className="action-buttons-group">
                 {hasFollowed ? (
                   <UnFollowButton
                     ownerEmail={decodedEmail || ""}
@@ -218,25 +236,25 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
                     }}
                   />
                 )}
+                
                 <button
-                  className="btn-message"
+                  className="btn-modern btn-message"
                   onClick={async () => {
                     const exists = await checkConversationExists();
-
                     if (!exists) {
                       await handleSendMessage();
                     }
-
                     await refetch();
-
                     setOpenMessage(true);
                   }}
                 >
+                  <SendIcon sx={{ fontSize: 18 }} />
                   Nhắn tin
                 </button>
-                <div style={{ position: "relative" }}>
+
+                <div className="menu-dot-wrapper">
                   <button
-                    className="dot-btn-message"
+                    className="btn-modern dot-btn-message"
                     onClick={(e) => {
                       e.stopPropagation();
                       setOpenMenu((prev) => !prev);
@@ -246,7 +264,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
                   </button>
 
                   {openMenu && (
-                    <div ref={menuRef} className="account-menu">
+                    <div ref={menuRef} className="account-menu glass-panel">
                       <div
                         className="menu-item"
                         onClick={() => {
@@ -257,12 +275,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
                       >
                         🚩 Báo cáo tài khoản
                       </div>
-
                       <div
                         className="menu-item danger"
                         onClick={() => {
                           setOpenMenu(false);
-
                           ToastService.confirm(
                             "Bạn chắc chắn muốn chặn tài khoản này?",
                             async () => {
@@ -271,9 +287,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
                                   owner: decodedEmail!,
                                   client: currentUserEmail!,
                                 });
-
                                 ToastService.success("Chặn thành công");
-
                                 navigate("/home");
                               } catch (error) {
                                 console.error("❌ Lỗi chặn tài khoản:", error);
@@ -292,73 +306,37 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
                     </div>
                   )}
                 </div>
-              </>
-            )}
-          </div>
-
-          <div className="profile-overview">
-            <div className="number">
-              <span className="count">{postsCount}</span>
-              <span className="label">Bài viết</span>
-            </div>
-            <div className="number">
-              <span className="count">{followersCount}</span>
-              <span className="label">Người theo dõi</span>
-            </div>
-            <div className="number">
-              <span className="count">{followingCount}</span>
-              <span className="label">Đang theo dõi</span>
-            </div>
-          </div>
-
-          <div className="profile-description">
-            <span className="full-name">KHOA {user.department || ""}</span>
-            <span className="bio">
-              {user.description || "Chưa cập nhật bio"}
-            </span>
-          </div>
-        </div>
-        <div></div>
-      </div>
-      
-      <div className="profile-intro-section">
-        <div className="intro-card">
-          <div className="intro-title">Giới thiệu</div>
-          <div className="intro-list">
-            {user.address && (
-              <div className="intro-item">
-                <LocationOnIcon /> <span>{user.address}</span>
-              </div>
-            )}
-
-            {user.phone && (
-              <div className="intro-item">
-                <PhoneIcon/> <span>{user.phone}</span>
-              </div>
-            )}
-
-            {user.day_of_birth && (
-              <div className="intro-item">
-                <CakeIcon />{" "}
-                <span>
-                  {new Date(user.day_of_birth).toLocaleDateString("vi-VN")}
-                </span>
-              </div>
-            )}
-
-            {user.department && (
-              <div className="intro-item">
-                <SchoolIcon /> <span>{user.department}</span>
               </div>
             )}
           </div>
         </div>
-      </div>
+
+        {/* Profile Statistics (Dạng tab chuyển đổi như mockup) */}
+        <div className="profile-stats-bar">
+          <div className="stat-item">
+            <span className="stat-label">Người theo dõi</span>
+            <span className="stat-value">{followersCount}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Đang theo dõi</span>
+            <span className="stat-value">{followingCount}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Bài viết</span>
+            <span className="stat-value">{postsCount}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Điểm hoạt động</span>
+            <span className="stat-value">N/A</span>
+          </div>
+        </div>
       </div>
 
+      {/* CÁC MODAL VÀ PORTALS GIỮ NGUYÊN */}
       {isModalOpen && (
         <EditProfileModal user={user} onClose={() => setIsModalOpen(false)} />
       )}
+      
       {openMessage && (
         <div ref={boxRef} className="chat-fixed">
           <ChatDialog
@@ -368,6 +346,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
           />
         </div>
       )}
+      
       {openReportModal && reportEmail && (
         <ReportModal
           isOpen={openReportModal}
@@ -378,10 +357,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
           policy_type="tài khoản"
           type="account"
           violatorEmail={reportEmail}
-          content="" // báo cáo tài khoản không cần content
+          content=""
         />
       )}
-    </>
+    </div>
   );
 };
 

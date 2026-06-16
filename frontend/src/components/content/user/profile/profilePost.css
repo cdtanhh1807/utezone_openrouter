@@ -6,7 +6,6 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-left: 50px;
   max-width: 900px;
   margin-right: 500px;
 }
@@ -59,10 +58,34 @@
   font-size: 12px;
 }
 
+.imageDIv-story {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  /* làm tròn khung */
+  padding: 2px;
+  border: 2px solid red;
+  overflow: hidden;
+  /* quan trọng để ảnh không bị vươn ra */
+}
+
+.statusImg-story {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* giữ tỉ lệ ảnh, cắt phần thừa */
+  border-radius: 50%;
+  /* làm tròn ảnh */
+}
+
+.profileName-story {
+  font-size: 12px;
+}
+
 .postSection {
   width: 100%;
   max-width: 800px;
-  margin: 40px auto 0 auto;
+  margin: 00px auto 0 auto;
   /* top auto left-right */
   background-color: rgb(250 250, 250);
   box-sizing: border-box;
@@ -238,7 +261,7 @@
   padding: 3px 0;
   display: flex;
   justify-content: space-between;
-  margin-top: 2px;
+  margin-top: 10px;
 }
 
 .leftIcon {
@@ -447,6 +470,7 @@
   height: 800px;
   /* chiều cao cố định */
   overflow: hidden;
+  z-index: 1000;
 }
 
 .commentModalLeft {
@@ -829,7 +853,7 @@
   position: absolute;
   top: 28px;
   right: 0;
-  width: 180px;
+  width: 230px;
   background: #fff;
   border-radius: 12px;
   padding: 8px 0;
@@ -859,7 +883,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 550px;
+  margin-left: 530px;
 
 }
 

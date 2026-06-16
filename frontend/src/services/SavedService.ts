@@ -26,7 +26,7 @@ export const savedAPI = {
 
   // Xóa post khỏi collection
   removePostFromCollection: (data: {
-   collection_name: string;
+    collection_name: string;
     post_id: string;
   }) =>
     axiosInstance
@@ -39,5 +39,14 @@ export const savedAPI = {
   }) =>
     axiosInstance
       .post("/post_saved/delete_collection", data)
+      .then(res => res.data),
+
+  // Cập nhật trạng thái collection
+  updateStatusCollection: (data: {
+    collection_name: string;
+    status: "public" | "follow" | "private";
+  }) =>
+    axiosInstance
+      .post("/post_saved/update_status_collection", data)
       .then(res => res.data),
 };

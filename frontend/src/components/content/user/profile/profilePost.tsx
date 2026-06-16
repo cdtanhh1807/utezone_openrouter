@@ -35,6 +35,7 @@ import SaveToCollectionModal from "./SaveToCollectionModal";
 import CreatePostCatalogModal from "../create/createPostCatalog";
 import { catalogService } from "../../../../services/CatalogService";
 import { useAIStore } from "../stores/aiStore";
+import CommentVisibilityModal from "../post/CommentVisibilityModal";
 
 interface ProfilePostProps {
   archive?: boolean;
@@ -73,8 +74,18 @@ const ListPost: React.FC<ProfilePostProps> = ({
   const [postMenuOpen, setPostMenuOpen] = useState<Record<string, boolean>>({});
   const menuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [isRoleEditModalOpen, setIsRoleEditModalOpen] = useState(false);
+
+  const [commentVisibility, setCommentVisibility] = useState<
+    "public" | "follow" | "private"
+  >("public");
+
+  const [roleEditingPost, setRoleEditingPost] = useState<Post | null>(null);
+
   const [restorePost, setRestorePost] = useState<Post | null>(null);
   const [slideIndex, setSlideIndex] = useState<{ [key: string]: number }>({});
   const [isReactModalOpen, setReactModalOpen] = useState(false);
@@ -100,6 +111,9 @@ const ListPost: React.FC<ProfilePostProps> = ({
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [commentCountMap, setCommentCountMap] = useState<
+    Record<string, number>
+  >({});
 
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -108,6 +122,9 @@ const ListPost: React.FC<ProfilePostProps> = ({
   const [postCatalog, setPostCatalog] = useState<Post | null>(null);
   const [isCreateCatalog, setIsCreateCatalog] = useState(false);
   const { setStatus, openSummary } = useAIStore();
+  const [canCommentMap, setCanCommentMap] = useState<Record<string, boolean>>(
+    {},
+  );
 
   const [mentionRange, setMentionRange] = useState<{
     start: number;
@@ -516,12 +533,49 @@ const ListPost: React.FC<ProfilePostProps> = ({
   };
   const handleEditPost = (post: Post) => {
     setEditingPost(post);
-    setIsModalOpen(true);
+    setIsEditModalOpen(true);
     setPostMenuOpen((prev) => ({
       ...prev,
       [post._id]: false,
     }));
   };
+
+  const handleRoleEdit = (post: Post) => {
+    setRoleEditingPost(post);
+
+    setCommentVisibility(
+      (post.comment_visibility as "public" | "follow" | "private") || "public",
+    );
+
+    setIsRoleEditModalOpen(true);
+
+    setPostMenuOpen((prev) => ({
+      ...prev,
+      [post._id]: false,
+    }));
+  };
+
+  const handleSaveCommentVisibility = async () => {
+    if (!roleEditingPost) return;
+
+    await postAPI.updatePost(roleEditingPost._id, {
+      comment_visibility: commentVisibility,
+    });
+
+    setPosts((prev) =>
+      prev.map((p) =>
+        p._id === roleEditingPost._id
+          ? {
+              ...p,
+              comment_visibility: commentVisibility,
+            }
+          : p,
+      ),
+    );
+
+    setIsRoleEditModalOpen(false);
+  };
+
   const handleRestorePost = (post: Post) => {
     setRestorePost(post);
     setIsRestoreModalOpen(true);
@@ -797,6 +851,103 @@ const ListPost: React.FC<ProfilePostProps> = ({
       }
     }, 0);
   };
+  const calculateTotalCommentCount = async (post: Post) => {
+    try {
+      // Chỉ lấy comment gốc active
+      const rootComments = (post.comments ?? []).filter(
+        (comment) => comment.statusComment === "active",
+      );
+
+      const replyCounts = await Promise.all(
+        rootComments.map(async (comment) => {
+          const res = await CommentService.getCommentReply({
+            postId: post._id,
+            parentId: comment.commentId,
+          });
+
+          // Chỉ đếm reply active
+          const activeReplies =
+            res.commentReplys?.filter(
+              (reply: any) => reply.statusComment === "active",
+            ) ?? [];
+
+          return activeReplies.length;
+        }),
+      );
+
+      const totalReplies = replyCounts.reduce((sum, count) => sum + count, 0);
+
+      const total = rootComments.length + totalReplies;
+
+      setCommentCountMap((prev) => ({
+        ...prev,
+        [post._id]: total,
+      }));
+    } catch (err) {
+      console.error(err);
+
+      const activeRootComments = (post.comments ?? []).filter(
+        (comment) => comment.statusComment === "active",
+      );
+
+      setCommentCountMap((prev) => ({
+        ...prev,
+        [post._id]: activeRootComments.length,
+      }));
+    }
+  };
+  useEffect(() => {
+    posts.forEach((post) => {
+      calculateTotalCommentCount(post);
+    });
+  }, [posts]);
+
+  const checkCommentPermission = async (post: Post): Promise<boolean> => {
+    try {
+      if (post.comment_visibility === "public") {
+        return true;
+      }
+
+      if (post.comment_visibility === "private") {
+        return emailCheckUser === post.createdBy;
+      }
+
+      if (post.comment_visibility === "follow") {
+        if (emailCheckUser === post.createdBy) {
+          return true;
+        }
+
+        const relation = await AccountService.get_account_relation(
+          post.createdBy,
+        );
+
+        return !!relation.followers?.includes(emailCheckUser!);
+      }
+
+      return false;
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    const loadPermissions = async () => {
+      const result: Record<string, boolean> = {};
+
+      await Promise.all(
+        posts.map(async (post) => {
+          result[post._id!] = await checkCommentPermission(post);
+        }),
+      );
+
+      setCanCommentMap(result);
+    };
+
+    if (posts.length > 0) {
+      loadPermissions();
+    }
+  }, [posts, currentUserEmail]);
 
   return (
     <div className="profilePost">
@@ -813,7 +964,10 @@ const ListPost: React.FC<ProfilePostProps> = ({
           if (isShare && post.postId && !originalPost) {
             getOriginalPost(post.postId);
           }
-          const commentCount = post.comments?.length ?? 0;
+          const commentCount =
+            commentCountMap[post._id] ?? post.comments?.length ?? 0;
+
+          const canComment = canCommentMap[post._id] ?? false;
 
           const fileList = (post.thumbnails ?? []).filter(
             (name: string) => getFileType(name) === "file",
@@ -905,11 +1059,23 @@ const ListPost: React.FC<ProfilePostProps> = ({
                             className="menuItem"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleSummary(post);
+                              handleRoleEdit(post);
                             }}
                           >
-                            ✨ Tóm tắt bài viết
+                            💬 Ai có thể bình luận?
                           </div>
+
+                          {archive != true && (
+                            <div
+                              className="menuItem"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSummary(post);
+                              }}
+                            >
+                              ✨ Tóm tắt bài viết
+                            </div>
+                          )}
 
                           <div
                             className="menuItem delete"
@@ -1434,6 +1600,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
 
                     {/* Textarea */}
                     <textarea
+                      disabled={!canComment}
                       ref={(el) => {
                         commentInputRefs.current[post._id] = el;
                       }}
@@ -1486,9 +1653,13 @@ const ListPost: React.FC<ProfilePostProps> = ({
                         }
                       }}
                       placeholder={
-                        commentCount > 0
-                          ? `Đã có ${commentCount} bình luận về bài viết này, bạn là người tiếp theo?`
-                          : "Hãy là người bình luận đầu tiên!"
+                        !canComment
+                          ? post.comment_visibility === "private"
+                            ? "Chỉ chủ bài viết mới được bình luận"
+                            : "Bạn phải theo dõi chủ bài viết để bình luận"
+                          : commentCount > 0
+                            ? `Đã có ${commentCount} bình luận về bài viết này, bạn là người tiếp theo?`
+                            : "Hãy là người bình luận đầu tiên!"
                       }
                       className="commentBox"
                       rows={1}
@@ -1525,7 +1696,12 @@ const ListPost: React.FC<ProfilePostProps> = ({
                   </div>
                   <div className="emojiWrapper">
                     <InsertEmoticonOutlinedIcon
-                      sx={{ fontSize: 22, color: "#777", cursor: "pointer" }}
+                      sx={{
+                        fontSize: 22,
+                        color: canComment ? "#777" : "#cbd5e1",
+                        opacity: canComment ? 1 : 0.5,
+                      }}
+                      // sx={{ fontSize: 22, color: "#777", cursor: "pointer" }}
                       onClick={(e) => {
                         e.stopPropagation();
                         setOpenEmojiPicker((prev) =>
@@ -1535,12 +1711,13 @@ const ListPost: React.FC<ProfilePostProps> = ({
                         );
                       }}
                     />
-                    {openEmojiPicker?.type === "post" &&
-                      openEmojiPicker.postId === post._id && (
+                    {canComment &&
+                      openEmojiPicker?.type === "modal" &&
+                      openEmojiPicker.postId === (post._id || "") && (
                         <div className="emojiPickerContainer">
                           <EmojiPicker
                             onEmojiClick={(emojiData) =>
-                              handleEmojiClick(post._id, emojiData)
+                              handleEmojiClick(post._id || "", emojiData)
                             }
                           />
                         </div>
@@ -1611,9 +1788,9 @@ const ListPost: React.FC<ProfilePostProps> = ({
           onPostSaved={fetchPosts}
         />
         <EditPost
-          isOpen={isModalOpen}
+          isOpen={isEditModalOpen}
           onClose={() => {
-            setIsModalOpen(false);
+            setIsEditModalOpen(false);
             setEditingPost(null);
           }}
           post={editingPost}
@@ -1697,6 +1874,13 @@ const ListPost: React.FC<ProfilePostProps> = ({
           onSuccess={() => {
             console.log("reload catalog");
           }}
+        />
+        <CommentVisibilityModal
+          open={isRoleEditModalOpen}
+          value={commentVisibility}
+          onChange={setCommentVisibility}
+          onClose={() => setIsRoleEditModalOpen(false)}
+          onSave={handleSaveCommentVisibility}
         />
       </div>
     </div>

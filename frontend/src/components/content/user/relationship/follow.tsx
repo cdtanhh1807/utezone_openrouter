@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AccountService from "../../../../services/AccountService";
 import type { FollowBlockRequest } from "../../../../services/AccountService";
+import AddIcon from "@mui/icons-material/Add";
 
 interface FollowButtonProps {
   ownerEmail: string;
@@ -8,7 +9,11 @@ interface FollowButtonProps {
   onFollowSuccess?: () => void;
 }
 
-export const FollowButton = ({ ownerEmail, clientEmail, onFollowSuccess }: FollowButtonProps) => {
+export const FollowButton = ({
+  ownerEmail,
+  clientEmail,
+  onFollowSuccess,
+}: FollowButtonProps) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -39,6 +44,7 @@ export const FollowButton = ({ ownerEmail, clientEmail, onFollowSuccess }: Follo
 
   return (
     <button className="btn-follow" onClick={handleFollow} disabled={loading}>
+      {!loading && <AddIcon fontSize="small" />}
       {loading ? "Đang xử lý..." : "Theo dõi"}
     </button>
   );

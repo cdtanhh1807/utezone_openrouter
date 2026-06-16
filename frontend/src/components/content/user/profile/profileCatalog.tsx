@@ -150,7 +150,8 @@ function ProfileCatalog() {
               <div className="catalog-action">
                 <button
                   className="catalog-action-btn"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setOpenMenuId(
                       openMenuId === item._id ? null : item._id || null,
                     );
@@ -163,7 +164,10 @@ function ProfileCatalog() {
                   <div className="catalog-dropdown">
                     <div
                       className="catalog-dropdown-item"
-                      onClick={() => handleOpenUpdate(item.post_id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenUpdate(item.post_id);
+                      }}
                     >
                       <Pencil size={15} />
                       Chỉnh sửa

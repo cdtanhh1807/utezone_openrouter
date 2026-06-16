@@ -1,66 +1,75 @@
-.profileDetail {
-  display: flex;
-  gap: 160px;
-  padding: 20px 40px;
-   padding-top: 0px;
-   padding-bottom: 0px;
+/* Card bọc ngoài Profile Detail (Chuẩn UI Sidebar) */
+.profileDetail-modern-card {
+  background: #ffffff;
   border-radius: 12px;
-  background-color: #fff;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #eaeaec;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #050505;
+  margin: 0;
+}
+
+/* Phần hiển thị Logo/Avatar khoa */
+.detail-header-visual {
+  display: flex;
+  justify-content: center;
   align-items: center;
-  justify-content: flex-start;
+  padding: 10px 0;
 }
 
-/* Avatar */
-.imageDIv-detail {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%; /* làm tròn khung */
-  padding: 4px;
-  border: 2px solid rgb(21, 10, 161);
-  overflow: hidden; /* quan trọng để ảnh không bị vươn ra */
-}
-
-.avatar-wrapper {
-  width: 100px;
-  height: 100px;
+.faculty-logo-wrapper {
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  overflow: hidden;
-  background-color: #f0f0f0;
+  padding: 4px;
+  border: 2px solid #eaeaec;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
 }
 
-.faculty-avatar {
+.faculty-logo {
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-.profile-info-detail {
-  flex: 1;
-  width: auto;
-
-  border: none;
-
-  background: #fafbfc;
-
-  padding: 20px;
-
-  border-radius: 12px;
-}
-.detail-description {
-  padding: 10px;
-  border-radius: 8px;
-  transition: .2s;
+  border-radius: 50%;
 }
 
-.detail-description:hover {
-  background: white;
+/* Danh sách thông tin */
+.detail-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.detail-description-icon {
-  font-weight: bold;
-  font-size: 16px;
+/* Từng dòng thông tin */
+.detail-item-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-.detail-description-text {
-  font-size: 13px;
-  font-weight: 500;
+.detail-icon {
+  color: #8c939d;
+  font-size: 22px !important;
+  margin-top: 2px;
+}
+
+.detail-text {
+  font-size: 15px;
+  color: #050505;
+  line-height: 1.4;
+}
+
+.detail-text strong {
+  font-weight: 600;
 }

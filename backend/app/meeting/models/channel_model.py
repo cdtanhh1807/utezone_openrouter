@@ -33,7 +33,7 @@ class ChatRoom(BaseModel):
     channel_id: str
     name: str
     description: Optional[str] = None
-    room_type: Literal["text", "voice"] = "text"
+    room_type: Literal["text", "voice", "ai"] = "text"
     meeting_room_id: Optional[str] = None
     created_by: str
     created_at: dt = Field(default_factory=dt.now)
@@ -185,3 +185,17 @@ class CreateAIConversationRequest(BaseModel):
 
 class AskAIConversationRequest(BaseModel):
     question: str
+
+#AI cho chủ channel
+class AskChannelAIRequest(BaseModel):
+    message: str
+
+
+class ChannelAIMessage(BaseModel):
+    message_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    channel_id: str
+    user_email: str
+    role: Literal["user", "assistant"] = "user"
+    content: str
+    actions: List[Dict[str, Any]] = []
+    created_at: dt = Field(default_factory=dt.now)

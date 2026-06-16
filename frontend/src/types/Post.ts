@@ -54,6 +54,7 @@ export interface Post {
   react?: ReactType;
   pollData?: any;
   comments?: Comment[];
+  comment_visibility?: string;
   lastEdited?: string;
   thumbnails?: string[];
   thumbnails_url: string[];

@@ -14,7 +14,8 @@ from meeting.models.channel_model import (
     CreateChatRoomRequest, UpdateChatRoomRequest,
     JoinChannelRequest, ApproveMemberRequest,
     SendMessageRequest,
-    AskDocumentRequest
+    AskDocumentRequest,
+    AskChannelAIRequest
 )
 from utils.security import get_current_user
 import httpx
@@ -23,7 +24,8 @@ from fastapi import BackgroundTasks
 from meeting.services.moderation_service import moderate_text_message
 
 from meeting.services.document_rag_service import document_rag_service
-from meeting.models.channel_model import AskDocumentRequest
+from meeting.services.channel_ai_service import channel_ai_service
+
 
 router = APIRouter(prefix="/channels", tags=["channels"])
 
@@ -717,7 +719,7 @@ async def get_channel_chat_rooms(channel_id: str, current_user: dict = Depends(g
     is_member = any(m.email == email and m.status == "approved" for m in channel.members)
     if not is_member:
         raise HTTPException(status_code=403, detail="Bạn không phải thành viên của channel này")
-    chatrooms = await channel_service.get_channel_chat_rooms(channel_id)
+    chatrooms = await channel_service.get_channel_chat_rooms(channel_id, email)
     return {"chatrooms": chatrooms}
 
 
@@ -1594,3 +1596,51 @@ async def rename_ai_conversation(
     except Exception as e:
         print(f"[AI_CONVERSATION_RENAME_ERROR] {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+#AI cho chủ channel
+@router.get("/{channel_id}/ai/messages")
+async def get_channel_ai_messages(
+    channel_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    channel = await channel_service.get_channel(channel_id)
+
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel không tồn tại")
+
+    if channel.owner_email.strip().lower() != email:
+        raise HTTPException(status_code=403, detail="Chỉ chủ channel mới có thể dùng UTEZoneAI")
+
+    messages = await channel_ai_service.get_history(channel_id, email)
+
+    return {
+        "messages": messages
+    }
+
+
+@router.post("/{channel_id}/ai/ask")
+async def ask_channel_ai(
+    channel_id: str,
+    req: AskChannelAIRequest,
+    background_tasks: BackgroundTasks,
+    current_user: dict = Depends(get_current_user)
+):
+    email = current_user["sub"].strip().lower()
+
+    try:
+        result = await channel_ai_service.execute_command(
+            channel_id=channel_id,
+            owner_email=email,
+            message=req.message
+        )
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    except Exception as e:
+        print(f"[CHANNEL_AI] ask error: {e}")
+        raise HTTPException(status_code=500, detail="UTEZoneAI xử lý thất bại")

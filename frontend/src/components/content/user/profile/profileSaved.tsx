@@ -2,10 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import "./profileSaved.css";
 import { savedAPI } from "../../../../services/SavedService";
 import { postAPI } from "../../../../services/PostService";
-import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import ModeEditOutlinedIcon from "@mui/icons-material/ModeEditOutlined";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
 import PostDetail from "../post/postDetail";
+import CollectionPrivacyModal from "./CollectionPrivacyModal";
+import { jwtDecode } from "jwt-decode";
+import AccountService from "../../../../services/AccountService";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 interface Post {
   _id: string;
@@ -16,6 +20,7 @@ interface Post {
 interface Collection {
   id: string;
   name: string;
+  status?: "public" | "follow" | "private";
   posts: Post[];
 }
 
@@ -26,6 +31,11 @@ function ProfileSaved({ email }: { email?: string }) {
   const [openPostMenu, setOpenPostMenu] = useState<string | null>(null);
   const [activePost, setActivePost] = useState<any>(null);
   const [isPostDetailOpen, setIsPostDetailOpen] = useState(false);
+  const [privacyModal, setPrivacyModal] = useState({
+    open: false,
+    collectionName: "",
+    status: "public" as "public" | "follow" | "private",
+  });
   const [renameModal, setRenameModal] = useState<{
     open: boolean;
     oldName: string;
@@ -36,58 +46,125 @@ function ProfileSaved({ email }: { email?: string }) {
     newName: "",
   });
 
-  useEffect(() => {
+  const token = localStorage.getItem("token");
+  let currentUserEmail: string | null = null;
+
+  if (!currentUserEmail && token) {
+    try {
+      interface JwtPayload {
+        sub: string;
+        role: string;
+        exp: number;
+        per: string;
+      }
+      const decoded: JwtPayload = jwtDecode<JwtPayload>(token);
+      currentUserEmail = decoded.sub;
+    } catch (err) {
+      console.error("❌ Token không hợp lệ:", err);
+    }
+  }
+
+  const fetchCollections = async () => {
     if (!email) return;
 
-    const fetchCollections = async () => {
-      try {
-        setLoading(true);
-        const res = await savedAPI.getCollections(email);
+    try {
+      setLoading(true);
 
-        const rawCollections = res?.post_saved?.collections || [];
+      const res = await savedAPI.getCollections(email);
 
-        const mappedCollections: Collection[] = await Promise.all(
-          rawCollections.map(async (col: any, index: number) => {
-            const posts: Post[] = await Promise.all(
-              (col.posts || []).map(async (postId: string) => {
-                try {
-                  const resPost = await postAPI.getById(postId);
-                  const post = resPost?.post;
+      const allCollections = res?.post_saved?.collections || [];
 
-                  return {
-                    _id: postId,
-                    image:
-                      post?.thumbnails_url?.[0] ||
-                      post?.image ||
-                      "https://via.placeholder.com/300",
-                    createdAt: post?.createdAt || new Date().toISOString(),
-                  };
-                } catch {
-                  return {
-                    _id: postId,
-                    image: "https://via.placeholder.com/300",
-                    createdAt: new Date().toISOString(),
-                  };
-                }
-              }),
-            );
+      const isOwner = currentUserEmail === email;
 
-            return {
-              id: `${index}`,
-              name: col.name,
-              posts,
-            };
-          }),
-        );
+      let isFollowing = false;
 
-        setCollections(mappedCollections);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+      const hasFollowCollection = allCollections.some(
+        (col: any) => col.status === "follow",
+      );
+
+      if (hasFollowCollection && currentUserEmail && !isOwner) {
+        try {
+          const followRes = await AccountService.check_followed(
+            currentUserEmail,
+            email,
+          );
+
+          console.log(followRes);
+
+          isFollowing = followRes.is_following;
+        } catch (err) {
+          console.error("check_followed error:", err);
+        }
       }
-    };
 
+      console.log("Profile owner:", email);
+      console.log("Current user:", currentUserEmail);
+      console.log("Is owner:", isOwner);
+      console.log("Is following:", isFollowing);
+      console.log("All collections:", allCollections);
+
+      const rawCollections = allCollections.filter((col: any) => {
+        if (col.status === "public") return true;
+
+        if (col.status === "follow") {
+          return isOwner || isFollowing;
+        }
+
+        if (col.status === "private") {
+          return isOwner;
+        }
+
+        return false;
+      });
+
+      console.log("Visible collections:", rawCollections);
+
+      const mappedCollections: Collection[] = await Promise.all(
+        rawCollections.map(async (col: any, index: number) => {
+          const posts: Post[] = await Promise.all(
+            (col.posts || []).map(async (postId: string) => {
+              try {
+                const resPost = await postAPI.getById(postId);
+                const post = resPost?.post;
+
+                return {
+                  _id: postId,
+                  image:
+                    post?.thumbnails_url?.[0] ||
+                    post?.image ||
+                    "https://via.placeholder.com/300",
+                  createdAt: post?.createdAt || new Date().toISOString(),
+                };
+              } catch {
+                return {
+                  _id: postId,
+                  image: "https://via.placeholder.com/300",
+                  createdAt: new Date().toISOString(),
+                };
+              }
+            }),
+          );
+
+          return {
+            id: `${index}`,
+            name: col.name,
+            status: col.status,
+            posts,
+          };
+        }),
+      );
+
+      console.log("Mapped collections:", mappedCollections);
+
+      setCollections(mappedCollections);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchCollections();
   }, [email]);
 
@@ -234,6 +311,7 @@ function ProfileSaved({ email }: { email?: string }) {
               {openMenu === col.name && (
                 <div className="menu" ref={menuRef}>
                   <div
+                    className="menu-item"
                     onClick={() =>
                       setRenameModal({
                         open: true,
@@ -242,11 +320,27 @@ function ProfileSaved({ email }: { email?: string }) {
                       })
                     }
                   >
-                    <ModeEditOutlinedIcon /> Đổi tên bộ sưu tập
+                    <EditIcon /> <span>Đổi tên bộ sưu tập</span>
+                  </div>
+                  <div
+                    className="menu-item"
+                    onClick={() =>
+                      setPrivacyModal({
+                        open: true,
+                        collectionName: col.name,
+                        status: col.status!,
+                      })
+                    }
+                  >
+                    <SettingsIcon />
+                    <span>Cài đặt quyền riêng tư</span>
                   </div>
 
-                  <div onClick={() => handleDeleteCollection(col.name)}>
-                    <DeleteOutlinedIcon /> Xóa bộ sưu tập
+                  <div
+                    className="menu-item"
+                    onClick={() => handleDeleteCollection(col.name)}
+                  >
+                    <DeleteIcon /> <span>Xóa bộ sưu tập</span>
                   </div>
                 </div>
               )}
@@ -267,7 +361,7 @@ function ProfileSaved({ email }: { email?: string }) {
                     setOpenPostMenu(openPostMenu === post._id ? null : post._id)
                   }
                 >
-                  <DeleteOutlinedIcon
+                  <DeleteIcon
                     onClick={(e) => {
                       e.stopPropagation();
                       handleRemovePost(col.name, post._id);
@@ -325,7 +419,35 @@ function ProfileSaved({ email }: { email?: string }) {
           </div>
         </div>
       )}
-      
+      <CollectionPrivacyModal
+        open={privacyModal.open}
+        value={privacyModal.status}
+        onClose={() =>
+          setPrivacyModal((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
+        onChange={(status) =>
+          setPrivacyModal((prev) => ({
+            ...prev,
+            status,
+          }))
+        }
+        onSave={async () => {
+          await savedAPI.updateStatusCollection({
+            collection_name: privacyModal.collectionName,
+            status: privacyModal.status,
+          });
+
+          fetchCollections();
+
+          setPrivacyModal((prev) => ({
+            ...prev,
+            open: false,
+          }));
+        }}
+      />
     </div>
   );
 }

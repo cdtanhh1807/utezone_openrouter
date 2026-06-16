@@ -1,5 +1,6 @@
 .rightSide {
    flex-shrink: 0;
+  
 }
 
 /* ================= FLOATING RIBBON ================= */
@@ -147,9 +148,14 @@
 }
 
 .post-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   font-size: 14px;
   font-weight: 700;
   margin-bottom: 4px;
+
 }
 
 .post-summary {
