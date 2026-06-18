@@ -8,7 +8,20 @@ from fastapi.middleware.cors import CORSMiddleware
 # from controllers.websocket_controller import websocket_endpoint
 from controllers.websocket_controller import router as websocket_router
 
-from crawl.importdata.fit_import_router import router as crawl_router
+from crawl.importdata.fit.fit_import_router import router as fit_crawl_router
+from crawl.importdata.feet.feet_import_router import router as feet_crawl_router
+from crawl.importdata.feee.feee_import_router import router as feee_crawl_router
+from crawl.importdata.fme.fme_import_router import router as fme_crawl_router
+from crawl.importdata.ffl.ffl_import_router import router as ffl_crawl_router
+from crawl.importdata.fas.fas_import_router import router as fas_crawl_router
+from crawl.importdata.fce.fce_import_router import router as fce_crawl_router
+from crawl.importdata.fe.fe_import_router import router as fe_crawl_router
+from crawl.importdata.fcft.fcft_import_router import router as fcft_crawl_router
+from crawl.importdata.fgam.fgam_import_router import router as fgam_crawl_router
+from crawl.importdata.fgtfd.fgtfd_import_router import router as fgtfd_crawl_router
+from crawl.importdata.fpi.fpi_import_router import router as fpi_crawl_router
+from crawl.importdata.fae.fae_import_router import router as fae_crawl_router
+from crawl.importdata.ite.ite_import_router import router as ite_crawl_router
 
 import asyncio  
 from meeting.controllers import meeting_controller
@@ -56,7 +69,7 @@ app.include_router(message_controller.router, prefix="/message", tags=["message"
 app.include_router(announce_controller.router, prefix="/announce", tags=["announce"])
 app.include_router(story_controller.router, prefix="/story", tags=["story"])
 app.include_router(ai_controller.router, prefix="/ai", tags=["ai"])
-app.include_router(crawl_router, prefix="/crawl", tags=["crawl"])
+
 app.include_router(incident_report_controller.router, prefix="/incident_report", tags=["incident_report"])
 # app.add_websocket_route("/ws", websocket_endpoint)
 app.include_router(websocket_router)
@@ -64,6 +77,21 @@ app.include_router(websocket_router)
 app.include_router(post_saved_controller.router, prefix="/post_saved", tags=["post_saved"])
 app.include_router(post_catalog_controller.router, prefix="/post_catalog", tags=["post_catalog"])
 
+#crawl
+app.include_router(fit_crawl_router, prefix="/fit_crawl", tags=["crawl"])
+app.include_router(feet_crawl_router, prefix="/feet_crawl", tags=["crawl"])
+app.include_router(feee_crawl_router, prefix="/feee_crawl", tags=["crawl"])
+app.include_router(fme_crawl_router, prefix="/fme_crawl", tags=["crawl"])
+app.include_router(ffl_crawl_router, prefix="/ffl_crawl", tags=["crawl"])
+app.include_router(fas_crawl_router, prefix="/fas_crawl", tags=["crawl"])
+app.include_router(fce_crawl_router, prefix="/fce_crawl", tags=["crawl"])
+app.include_router(fe_crawl_router, prefix="/fe_crawl", tags=["crawl"])
+app.include_router(fcft_crawl_router, prefix="/fcft_crawl", tags=["crawl"])
+app.include_router(fgam_crawl_router, prefix="/fgam_crawl", tags=["crawl"])
+app.include_router(fgtfd_crawl_router, prefix="/fgtfd_crawl", tags=["crawl"])
+app.include_router(fpi_crawl_router, prefix="/fpi_crawl", tags=["crawl"])
+app.include_router(fae_crawl_router, prefix="/fae_crawl", tags=["crawl"])
+app.include_router(ite_crawl_router, prefix="/ite_crawl", tags=["crawl"])
 
 #Meeting
 app.include_router(meeting_controller.router)

@@ -19,11 +19,6 @@ class CrawlToPostConverter:
         self.max_file_size = 50 * 1024 * 1024  # Tăng lên 50MB cho video
     
     def get_file_type(self, url: str) -> Tuple[str, str]:
-        """
-        Phân loại file dựa trên URL/extension
-        Returns: (file_type, filename)
-        file_type: 'image' | 'video' | 'document' | 'unknown'
-        """
         parsed = urlparse(url)
         path = parsed.path.lower()
         filename = path.split('/')[-1] if '/' in path else "unknown"
@@ -139,9 +134,9 @@ class CrawlToPostConverter:
     def map_category(self, crawl_category: str) -> str:
         """Map category từ crawl sang category của hệ thống"""
         category_mapping = {
-            "Các thông báo mới": "CÔNG NGHỆ THÔNG TIN",
-            "Tin tức": "CÔNG NGHỆ THÔNG TIN",
-            "Sự kiện": "CÔNG NGHỆ THÔNG TIN",
+            "Tin tức": "GIAO THÔNG VÀ NĂNG LƯỢNG",
+            "Thông báo": "GIAO THÔNG VÀ NĂNG LƯỢNG",
+            "Học bổng việc làm": "GIAO THÔNG VÀ NĂNG LƯỢNG",
         }
         return category_mapping.get(crawl_category, crawl_category)
     
@@ -286,7 +281,7 @@ class CrawlToPostConverter:
         if crawl_cat:
             categories.append(self.map_category(crawl_cat))
         if not categories:
-            categories = ["CÔNG NGHỆ THÔNG TIN"]
+            categories = ["GIAO THÔNG VÀ NĂNG LƯỢNG"]
         
         return AddPostRequest(
             title=crawl_doc.get("title", "").strip(),
@@ -296,7 +291,7 @@ class CrawlToPostConverter:
             visibility="public",
             comment_visibility="public",
             status="active",
-            createdBy="fit.hcmute@utezone.com",
+            createdBy="feet.hcmute@utezone.com",
             category=categories,
             pollData=None,
             thumbnails=thumbnails if thumbnails else None

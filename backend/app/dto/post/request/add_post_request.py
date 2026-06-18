@@ -7,7 +7,6 @@ from models.post_model import PollData
 class AddPostRequest(BaseModel):
     title: str
     content: str
-    # createdAt: datetime = datetime.now(timezone.utc)
     createdAt: datetime = Field(default_factory=datetime.now)
     postType: str              
     visibility: str

@@ -204,20 +204,6 @@ const IncidentReportManager: React.FC = () => {
               )}
             </div>
 
-            {/* 👇 Thay thế select bằng MySelect, tăng chiều rộng bằng style hoặc className */}
-            <div style={{ minWidth: 180 }}>
-              <MySelect
-                placeholder="Tất cả trạng thái"
-                value={statusFilter}
-                onChange={(v) => setStatusFilter(v as any)}
-                options={[
-                  { value: 'all', label: 'Tất cả trạng thái' },
-                  { value: 'pending', label: 'Chưa xử lý' },
-                  { value: 'resolved', label: 'Đã xử lý' },
-                ]}
-              />
-            </div>
-
             <DatePicker
               selected={selectedDate ? new Date(selectedDate) : null}
               onChange={(date: Date | null) =>
@@ -239,7 +225,6 @@ const IncidentReportManager: React.FC = () => {
                 <th>Email</th>
                 <th>Nội dung sự cố</th>
                 <th>Thời gian</th>
-                <th>Trạng thái</th>
                 <th>Hành động</th>
               </tr>
             </thead>
@@ -249,15 +234,6 @@ const IncidentReportManager: React.FC = () => {
                   <td>{rep.email}</td>
                   <td>{rep.content.length > 80 ? rep.content.slice(0, 80) + '...' : rep.content}</td>
                   <td>{new Date(rep.reportedAt).toLocaleString('vi-VN')}</td>
-                  <td>
-                    <span
-                      className={`${styles.status} ${
-                        rep.status ? styles.stActive : styles.stLocked
-                      }`}
-                    >
-                      {rep.status ? 'Đã xử lý' : 'Chưa xử lý'}
-                    </span>
-                  </td>
                   <td>
                     <button className={styles.textBtn} onClick={() => openDetail(rep)}>
                       Chi tiết
@@ -316,14 +292,6 @@ const IncidentReportManager: React.FC = () => {
                       <label className={styles.label}>Email người báo cáo</label>
                       <input className={styles.input} value={selectedReport?.email || ''} disabled />
                     </div>
-                    <div className={styles.formCol}>
-                      <label className={styles.label}>Trạng thái</label>
-                      <input
-                        className={styles.input}
-                        value={selectedReport?.status ? 'Đã xử lý' : 'Chưa xử lý'}
-                        disabled
-                      />
-                    </div>
                   </div>
 
                   <div className={styles.formRow}>
@@ -351,14 +319,6 @@ const IncidentReportManager: React.FC = () => {
                 </div>
 
                 <div className={styles.modalFooter}>
-                  {selectedReport && !selectedReport.status && (
-                    <button className={`${styles.textBtn} ${styles.confirm}`} onClick={handleResolve}>
-                      Đánh dấu đã xử lý
-                    </button>
-                  )}
-                  <button className={`${styles.textBtn} ${styles.danger}`} onClick={handleDelete}>
-                    Xóa báo cáo
-                  </button>
                   <button className={styles.textBtn} onClick={closeModal}>
                     Đóng
                   </button>

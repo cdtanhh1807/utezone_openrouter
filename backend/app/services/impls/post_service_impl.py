@@ -415,6 +415,9 @@ class PostServiceImpl(IPostService):
         for dic in post_dic:
             post: TopPost = TopPost(**bson_to_dict(dic))
             data.append(post)
+
+        print("topost ne")
+        print(data)
         return GetTopInteractedPostReponse(success=True, data=data)
     
     async def get_post_suggest(self, req: GetPostSuggestRequest) -> GetPostSuggestResponse:

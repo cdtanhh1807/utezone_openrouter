@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 import httpx
 
 from core.dependency import get_post_service
-from crawl.converter.fit_converter_service import CrawlToPostConverter
+from crawl.converter.fgam_converter_service import CrawlToPostConverter
 from dto.post.response.add_post_response import AddPostResponse
 from services.impls.post_service_impl import PostServiceImpl
 from services.interfaces.post_service_interface import IPostService
@@ -16,12 +16,8 @@ class CrawlImportService:
         self.converter = converter
     
     async def import_single(self, crawl_doc: Dict[str, Any]) -> AddPostResponse:
-        """Import 1 bài crawl thành post"""
         try:
-            # Chuyển đổi
-            post_request = await self.converter.convert(crawl_doc)
-            
-            # Thêm vào DB qua service có sẵn
+            post_request = await self.converter.convert(crawl_doc)            
             result = await self.post_service.add_from_crawl(post_request)
             return result
             
@@ -29,7 +25,6 @@ class CrawlImportService:
             raise HTTPException(status_code=400, detail=f"Import failed: {str(e)}")
     
     async def import_bulk(self, crawl_docs: List[Dict[str, Any]]) -> dict:
-        """Import nhiều bài cùng lúc"""
         results = {"success": [], "failed": []}
         
         for doc in crawl_docs:
@@ -60,18 +55,6 @@ async def import_crawled_post(
     service: IPostService = Depends(get_post_service),
     converter: CrawlToPostConverter = Depends(get_crawl_converter)
 ):
-    """
-    Import 1 bài viết đã crawl thành post trong hệ thống
-    
-    Example body:
-    {
-        "article_id": "f3388afe...",
-        "title": "Thông báo...",
-        "date": "17/10/2025",
-        "image_url": "https://...",
-        "structured_content": [...]
-    }
-    """
     import_service = CrawlImportService(service, converter)
     return await import_service.import_single(crawl_doc)
 
@@ -82,11 +65,6 @@ async def import_bulk_posts(
     service: IPostService = Depends(get_post_service),
     converter: CrawlToPostConverter = Depends(get_crawl_converter)
 ):
-    """
-    Import nhiều bài viết cùng lúc
-    
-    Có thể chạy async trong background nếu số lượng lớn
-    """
     import_service = CrawlImportService(service, converter)
     
     # Nếu ít bài (< 10) thì xử lý sync, nếu nhiều thì background

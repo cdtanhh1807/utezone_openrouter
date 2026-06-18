@@ -588,19 +588,20 @@ class PostRepository:
     @staticmethod
     def department_to_email(department: str) -> str:
         mapping = {
-            "CHÍNH TRỊ LUẬT": "ctl.hcmute@utezone.com",
-            "CƠ KHÍ CHẾ TẠO MÁY": "ckctm.hcmute@utezone.com",
-            "CƠ KHÍ ĐỘNG LỰC": "ckdl.hcmute@utezone.com",
-            "CÔNG NGHỆ HÓA HỌC VÀ THỰC PHẨM": "cnhtp.hcmute@utezone.com",
-            "CÔNG NGHỆ THÔNG TIN": "cntt.hcmute@utezone.com",
-            "ĐIỆN - ĐIỆN TỬ": "dtdt.hcmute@utezone.com",
-            "IN VÀ TRUYỀN THÔNG": "intt.hcmute@utezone.com",
-            "KHOA HỌC ỨNG DỤNG": "khud.hcmute@utezone.com",
-            "KINH TẾ": "kt.hcmute@utezone.com",
-            "NGOẠI NGỮ": "nn.hcmute@utezone.com",
-            "THỜI TRANG VÀ DU LỊCH": "ttdl.hcmute@utezone.com",
-            "XÂY DỰNG": "xd.hcmute@utezone.com",
-            "VIỆN SƯ PHẠM KỸ THUẬT": "vspkt.hcmute@utezone.com"
+            "CÔNG NGHỆ THÔNG TIN": "fit.hcmute@utezone.com",
+            "GIAO THÔNG VÀ NĂNG LƯỢNG": "feet.hcmute@utezone.com",
+            "ĐIỆN - ĐIỆN TỬ": "feee.hcmute@utezone.com",
+            "CƠ KHÍ CHẾ TẠO MÁY": "fme.hcmute@utezone.com",
+            "KHOA HỌC ỨNG DỤNG": "fas.hcmute@utezone.com",
+            "XÂY DỰNG": "fce.hcmute@utezone.com",
+            "KINH TẾ": "fe.hcmute@utezone.com",
+            "NGOẠI NGỮ": "ffl.hcmute@utezone.com",
+            "CÔNG NGHỆ HÓA HỌC VÀ THỰC PHẨM": "fcft.hcmute@utezone.com",
+            "IN VÀ TRUYỀN THÔNG": "fgam.hcmute@utezone.com",
+            "THỜI TRANG VÀ DU LỊCH": "fgtfd.hcmute@utezone.com",
+            "CHÍNH TRỊ VÀ LUẬT": "fpi.hcmute@utezone.com",
+            "ĐÀO TẠO TIÊN TIẾN": "fae.hcmute@utezone.com",
+            "SƯ PHẠM KỸ THUẬT": "ite.hcmute@utezone.com"
         }
 
         return mapping.get(department, "")

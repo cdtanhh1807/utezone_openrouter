@@ -19,9 +19,18 @@
 /* ---------- LAYOUT ---------- */
 .wrapper {
   display: flex;
+  width: calc(100vw - 0px);
   height: 100vh;
   background: var(--gray-50);
-  min-width: 203vh;
+
+  /* Bù lại padding: 2rem từ #root trong App.css */
+  margin: -2rem;
+
+  /* Admin chiếm lại đúng toàn màn hình */
+  min-width: 100vw;
+  overflow: hidden;
+
+  text-align: left;
 }
 
 .main {
@@ -35,11 +44,10 @@
 
 .content {
   flex: 1;
+  min-height: 0;
   padding: 24px;
   overflow-y: auto;
-  /* cuộn dọc khi cần */
   overflow-x: hidden;
-  /* 👈 bỏ cuộn ngang */
 }
 
 /* ---------- SIDEBAR ---------- */

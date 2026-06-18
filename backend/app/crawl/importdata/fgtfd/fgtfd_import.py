@@ -3,8 +3,8 @@ import asyncio
 
 from typing import Dict, Any, Tuple
 
-async def fit_import():
-    url = "http://localhost:8000/crawl/crawl_import/import_single"
+async def fgtfd_import():
+    url = "http://localhost:8000/fgtfd_crawl/crawl_import/import_single"
     
     data_crawl = {}
     
@@ -25,7 +25,7 @@ async def fit_import():
 
 
 ############
-async def import_single_article(data_crawl: Dict[str, Any], api_url: str = "http://localhost:8000/crawl/crawl_import/import_single") -> Tuple[bool, Dict]:
+async def import_single_article(data_crawl: Dict[str, Any], api_url: str = "http://localhost:8000/fgtfd_crawl/crawl_import/import_single") -> Tuple[bool, Dict]:
 
     async with httpx.AsyncClient() as client:
         try:
@@ -49,4 +49,4 @@ async def import_single_article(data_crawl: Dict[str, Any], api_url: str = "http
 
 
 if __name__ == "__main__":
-    asyncio.run(fit_import())
+    asyncio.run(fgtfd_import())

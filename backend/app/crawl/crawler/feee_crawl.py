@@ -9,7 +9,7 @@ from dataclasses import dataclass, asdict, field
 from typing import List, Optional, Dict
 from playwright.async_api import async_playwright
 from dataclasses import asdict
-from crawl.importdata.fit.fit_import import import_single_article
+from crawl.importdata.feee.feee_import import import_single_article
 
 @dataclass
 class ArticleDetail:
@@ -33,21 +33,21 @@ class ArticleDetail:
             self.crawled_at = datetime.now().isoformat()
 
 
-class FITPlaywrightCrawler:
-    BASE_URL = "https://fit.hcmute.edu.vn"
+class FEEEPlaywrightCrawler:
+    BASE_URL = "https://feee.hcmute.edu.vn"
     
     CATEGORIES = {
+        "tin-tuc": {
+            "name": "Tin tức",
+            "url": "https://feee.hcmute.edu.vn/TopicId/3da47dbc-8a7f-41d5-b930-6b465e06b3c6/tin-tuc"
+        },
         "thong-bao": {
-            "name": "Các thông báo mới",
-            "url": "https://fit.hcmute.edu.vn/TopicId/05556b7b-ed01-4261-9390-4583add544ea/cac-thong-bao-moi"
+            "name": "Thông báo", 
+            "url": "https://feee.hcmute.edu.vn/TopicId/91637dbd-2d06-44c6-b4be-983aed73b3b5/thong-bao"
         },
-        "hoat-dong": {
-            "name": "Các hoạt động nổi bật", 
-            "url": "https://fit.hcmute.edu.vn/TopicId/9525ab2d-5a64-41ae-b53d-d4b9631adb36/cac-hoat-dong-noi-bat"
-        },
-        "viec-lam": {
-            "name": "Việc làm doanh nghiệp",
-            "url": "https://fit.hcmute.edu.vn/TopicId/d48b62d3-576a-412b-8a67-dc90214479fd/viec-lam-doanh-nghiep"
+        "tieu-diem": {
+            "name": "Tiêu điểm",
+            "url": "https://feee.hcmute.edu.vn/TopicId/f0210bc1-15ee-4206-8469-b9b9ebe311ce/tieu-diem"
         }
     }
     
@@ -191,13 +191,7 @@ class FITPlaywrightCrawler:
         
         return all_articles
     
-    # ==================== FIXED: EXTRACT STRUCTURED CONTENT ====================
-    
     def extract_structured_content(self, element) -> List[Dict]:
-        """
-        Trích xuất structured content từ articleContent
-        Giữ nguyên logic từ file cũ để đảm bảo hoạt động đúng
-        """
         content_blocks = []
         
         # Duyệt qua tất cả descendants
@@ -412,40 +406,7 @@ class FITPlaywrightCrawler:
         
         return results
 
-    # def save(self, articles: List[ArticleDetail], output_file="fit_output/articles.json"):
-    #     os.makedirs(os.path.dirname(output_file), exist_ok=True)
-
-    #     # Load dữ liệu cũ
-    #     existing_data = []
-    #     existing_ids = set()
-
-    #     if os.path.exists(output_file):
-    #         try:
-    #             with open(output_file, "r", encoding="utf-8") as f:
-    #                 existing_data = json.load(f)
-    #                 existing_ids = set(a["article_id"] for a in existing_data)
-    #         except:
-    #             pass
-
-    #     # Lọc bài mới
-    #     new_articles = []
-    #     for a in articles:
-    #         if a.article_id not in existing_ids:
-    #             new_articles.append(asdict(a))
-    #         else:
-    #             print(f"Skip: {a.article_id}")
-
-    #     # Append
-    #     all_data = existing_data + new_articles
-
-    #     with open(output_file, "w", encoding="utf-8") as f:
-    #         json.dump(all_data, f, ensure_ascii=False, indent=2)
-
-    #     print(f"\nAdded {len(new_articles)} new articles")
-    #     print(f"Total: {len(all_data)} articles")
-
-    ############### Save auto
-    async def save(self, articles, output_file="crawl/output/fit_output/articles.json"):
+    async def save(self, articles, output_file="crawl/output/feee_output/articles.json"):
         import os
         import json
         
@@ -525,50 +486,9 @@ class FITPlaywrightCrawler:
 
         return newly_imported
     
-    # async def run(self, category: str = "all", max_pages: int = 0, 
-    #               fetch_detail: bool = True) -> List[ArticleDetail]:
-    #     print("FIT.HCMUTE Crawler")
-    #     print(f"   Category: {category}")
-    #     print(f"   Max pages: {'unlimited' if max_pages == 0 else max_pages}")
-        
-    #     await self.init()
-        
-    #     try:
-    #         all_articles = []
-    #         if category == "all":
-    #             for key in self.CATEGORIES:
-    #                 articles = await self.crawl_category(key, max_pages)
-    #                 all_articles.extend(articles)
-    #         else:
-    #             all_articles = await self.crawl_category(category, max_pages)
-            
-    #         print(f"\n Total from lists: {len(all_articles)} articles")
-            
-    #         if fetch_detail and all_articles:
-    #             all_articles = await self.crawl_details(all_articles)
-            
-    #         if all_articles:
-    #             self.save(all_articles)
-                
-    #             print(f"\n DONE!")
-    #             print(f"   Total: {len(all_articles)} articles")
-    #             by_cat = {}
-    #             for a in all_articles:
-    #                 by_cat[a.category] = by_cat.get(a.category, 0) + 1
-    #             for cat, count in by_cat.items():
-    #                 print(f"   - {cat}: {count}")
-                
-    #             # Stats
-    #             with_structured = sum(1 for a in all_articles if a.structured_content)
-    #             print(f"   With structured content: {with_structured}")
-            
-    #         return all_articles
-            
-    #     finally:
-    #         await self.close()
     async def run(self, category: str = "all", max_pages: int = 0, 
                   fetch_detail: bool = True, auto_import: bool = True) -> List[ArticleDetail]:
-        print("FIT.HCMUTE Crawler")
+        print("FEEE.HCMUTE Crawler")
         print(f"   Category: {category}")
         print(f"   Max pages: {'unlimited' if max_pages == 0 else max_pages}")
         print(f"   Auto import: {'Bật' if auto_import else 'Tắt'}")
@@ -616,9 +536,9 @@ class FITPlaywrightCrawler:
 async def main():
     import argparse
     
-    parser = argparse.ArgumentParser(description="FIT.HCMUTE Crawler (Fixed)")
+    parser = argparse.ArgumentParser(description="FEEE.HCMUTE Crawler")
     parser.add_argument("-c", "--category", 
-                       choices=['thong-bao', 'hoat-dong', 'viec-lam', 'all'],
+                       choices=['tin-tuc', 'thong-bao', 'tieu-diem', 'all'],
                        default='all')
     parser.add_argument("-p", "--pages", type=int, default=0,
                        help="Max pages per category (0 = unlimited)")
@@ -629,7 +549,7 @@ async def main():
     
     args = parser.parse_args()
     
-    crawler = FITPlaywrightCrawler(
+    crawler = FEEEPlaywrightCrawler(
         headless=not args.visible,
         delay=args.delay
     )
