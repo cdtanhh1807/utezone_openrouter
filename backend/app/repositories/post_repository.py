@@ -601,7 +601,7 @@ class PostRepository:
             "THỜI TRANG VÀ DU LỊCH": "fgtfd.hcmute@utezone.com",
             "CHÍNH TRỊ VÀ LUẬT": "fpi.hcmute@utezone.com",
             "ĐÀO TẠO TIÊN TIẾN": "fae.hcmute@utezone.com",
-            "SƯ PHẠM KỸ THUẬT": "ite.hcmute@utezone.com"
+            "VIỆN SƯ PHẠM KỸ THUẬT": "ite.hcmute@utezone.com"
         }
 
         return mapping.get(department, "")
