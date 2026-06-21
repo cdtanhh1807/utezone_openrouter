@@ -12,6 +12,7 @@
     description?: string;
     avatar?: string;
     department?: string;
+    role?: string;
   }
 
   export interface Account {

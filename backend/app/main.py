@@ -5,7 +5,7 @@ load_dotenv(Path(__file__).resolve().parent / ".env")
 
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from controllers import ai_controller, announce_controller, ban_controller, comment_controller, complaint_controller, incident_report_controller, message_controller, policy_controller, post_catalog_controller, post_controller, post_saved_controller, report_controller, search_controller, story_controller
+from controllers import ai_controller, announce_controller, ban_controller, comment_controller, complaint_controller, incident_report_controller, message_controller, policy_controller, post_catalog_controller, post_controller, post_saved_controller, report_controller, search_controller, story_controller, story_highlight_controller
 from controllers import account_controller
 from core.database import init_db 
 from controllers import file_controller
@@ -104,3 +104,5 @@ app.include_router(meeting_websocket.router)
 
 #Channel
 app.include_router(channel_controller.router)
+
+app.include_router(story_highlight_controller.router, prefix="/story_highlight", tags=["story_highlight"])

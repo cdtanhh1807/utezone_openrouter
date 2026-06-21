@@ -183,9 +183,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
             <h1 className="profile-name">
               {user.fullName}
             </h1>
-            <p className="profile-headline">
+            {/* <p className="profile-headline">
               {user.department ? `KHOA ${user.department.toUpperCase()}` : "Sinh viên HCMUTE"}
-            </p>
+            </p> */}
             <p className="profile-bio">{user.description || "Chưa cập nhật tiểu sử."}</p>
           </div>
 
@@ -325,10 +325,6 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
             <span className="stat-label">Bài viết</span>
             <span className="stat-value">{postsCount}</span>
           </div>
-          <div className="stat-item">
-            <span className="stat-label">Điểm hoạt động</span>
-            <span className="stat-value">N/A</span>
-          </div>
         </div>
       </div>
 
@@ -348,7 +344,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
       )}
       
       {openReportModal && reportEmail && (
-        <ReportModal
+        <ReportModal 
           isOpen={openReportModal}
           onClose={() => {
             setOpenReportModal(false);

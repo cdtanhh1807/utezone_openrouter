@@ -14,6 +14,11 @@
   flex: 7;
 }
 
+.middleSide.full-width {
+  flex: 10;
+  width: 100%;
+}
+
 .rightSide {
   flex: 3;
 }

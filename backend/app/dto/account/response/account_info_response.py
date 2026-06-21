@@ -12,3 +12,4 @@ class AccountInfoResponse(BaseModel):
     followed: Optional[List[str]] = []
     blocks: Optional[List[str]] = []
     department: Optional[str] = None
+    role: Optional[str] = None

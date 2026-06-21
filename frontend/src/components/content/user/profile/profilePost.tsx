@@ -641,7 +641,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
       }));
 
       // mở summary modal
-      openSummary(data.ai_summary || "Không có tóm tắt.");
+      openSummary(data.ai_summary || "Không có tóm tắt.", post._id);
 
       // 🔥 chỉ success nếu AI vừa chạy
       if (!post.ai_summary) {
@@ -656,7 +656,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
 
       setStatus("idle");
 
-      openSummary("Không thể tóm tắt bài đăng.");
+      openSummary("Không thể tóm tắt bài đăng.", post._id);
     }
   };
 
@@ -699,6 +699,11 @@ const ListPost: React.FC<ProfilePostProps> = ({
   const handleRemove = (post: Post) => {
     // đóng menu
     setPostMenuOpen((prev) => ({ ...prev, [post._id]: false }));
+
+    if (roleCheckUser === "Moderator" && userInfoMap[post.createdBy]?.role === "Moderator") {
+      ToastService.error("Moderator không thể gỡ bài viết của Moderator khác!");
+      return;
+    }
 
     // dùng requestAnimationFrame để chắc chắn render cập nhật
     requestAnimationFrame(() => {
@@ -1136,8 +1141,8 @@ const ListPost: React.FC<ProfilePostProps> = ({
                             ✨ Tóm tắt bài viết
                           </div>
 
-                          {/* Nếu currentUser là Moderator → thêm Gỡ bài viết */}
-                          {roleCheckUser === "Moderator" && (
+                          {/* Nếu currentUser là Moderator và chủ bài viết không phải là Moderator → thêm Gỡ bài viết */}
+                          {roleCheckUser === "Moderator" && userInfoMap[post.createdBy]?.role !== "Moderator" && (
                             <div
                               className="menuItem delete"
                               onClick={() => handleRemove(post)}
@@ -1250,9 +1255,29 @@ const ListPost: React.FC<ProfilePostProps> = ({
                           {originalPost.thumbnails_url.map((url, idx) => {
                             const fileName =
                               originalPost.thumbnails?.[idx] || "";
+                            const isVideo = /\.mp4|\.mov$/i.test(fileName);
                             return (
                               <div className="slide" key={idx}>
-                                {/\.mp4|\.mov$/i.test(fileName) ? (
+                                {/* Background Blur */}
+                                {isVideo ? (
+                                  <video
+                                    className="post-media-blur"
+                                    src={url}
+                                    muted
+                                    playsInline
+                                    autoPlay
+                                    loop
+                                  />
+                                ) : (
+                                  <img
+                                    className="post-media-blur"
+                                    src={url}
+                                    alt=""
+                                  />
+                                )}
+
+                                {/* Main Media */}
+                                {isVideo ? (
                                   <video className="postVideo" controls>
                                     <source src={url} type="video/mp4" />
                                   </video>
@@ -1406,17 +1431,39 @@ const ListPost: React.FC<ProfilePostProps> = ({
                       transform: `translateX(-${getIndex(post._id) * 100}%)`,
                     }}
                   >
-                    {mediaItems.map((item, idx) => (
-                      <div className="slide" key={idx}>
-                        {/\.(mp4|mov|avi)$/i.test(item.fileId) ? (
-                          <video className="postVideo" controls>
-                            <source src={item.url} />
-                          </video>
-                        ) : (
-                          <img className="postImage" src={item.url} alt="" />
-                        )}
-                      </div>
-                    ))}
+                    {mediaItems.map((item, idx) => {
+                      const isVideo = /\.(mp4|mov|avi)$/i.test(item.fileId);
+                      return (
+                        <div className="slide" key={idx}>
+                          {/* Background Blur */}
+                          {isVideo ? (
+                            <video
+                              className="post-media-blur"
+                              src={item.url}
+                              muted
+                              playsInline
+                              autoPlay
+                              loop
+                            />
+                          ) : (
+                            <img
+                              className="post-media-blur"
+                              src={item.url}
+                              alt=""
+                            />
+                          )}
+
+                          {/* Main Media */}
+                          {isVideo ? (
+                            <video className="postVideo" controls>
+                              <source src={item.url} />
+                            </video>
+                          ) : (
+                            <img className="postImage" src={item.url} alt="" />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {/* NAV */}
@@ -1774,6 +1821,9 @@ const ListPost: React.FC<ProfilePostProps> = ({
             }}
             onActivePostUpdate={(updatedPost: Post) => {
               setActivePost(updatedPost); // cập nhật lại post sau khi edit
+              setPosts((prev) =>
+                prev.map((p) => (p._id === updatedPost._id ? updatedPost : p))
+              );
             }}
           />
         )}
@@ -1794,7 +1844,18 @@ const ListPost: React.FC<ProfilePostProps> = ({
             setEditingPost(null);
           }}
           post={editingPost}
-          onPostUpdated={fetchPosts}
+          onPostUpdated={async (postId) => {
+            try {
+              const res = await postAPI.getById(postId);
+              const updatedPost = res.post || res;
+              setPosts((prev) =>
+                prev.map((p) => (p._id === postId ? updatedPost : p))
+              );
+            } catch (err) {
+              console.error("Lỗi khi load lại post sau khi edit:", err);
+              fetchPosts();
+            }
+          }}
         />
         <RestorePost
           isOpen={isRestoreModalOpen}

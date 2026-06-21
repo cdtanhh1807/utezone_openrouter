@@ -24,6 +24,15 @@ class StoryRepository:
         return [bson_to_dict(story) for story in stories]
 
     @staticmethod
+    async def find_archive_by_user(user_id: str) -> list[dict]:
+        cursor = StoryRepository.collection.find({
+            "createdBy": user_id,
+            "status": "active"
+        })
+        stories = await cursor.to_list(length=None)
+        return [bson_to_dict(story) for story in stories]
+
+    @staticmethod
     async def find_all_active() -> list[dict]:
         cursor = StoryRepository.collection.find({
             "status": "active",

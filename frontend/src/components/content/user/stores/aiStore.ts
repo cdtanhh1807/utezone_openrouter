@@ -8,30 +8,26 @@ type AIStatus =
 
 type AIStore = {
   status: AIStatus;
-
   summary: string;
-
   showSummary: boolean;
-
+  postId?: string;
   setStatus: (status: AIStatus) => void;
-
-  openSummary: (summary: string) => void;
-
+  openSummary: (summary: string, postId?: string) => void;
   closeSummary: () => void;
 };
 
 export const useAIStore = create<AIStore>((set) => ({
   status: "idle",
-
   summary: "",
-
   showSummary: false,
+  postId: undefined,
 
   setStatus: (status) => set({ status }),
 
-  openSummary: (summary) =>
+  openSummary: (summary, postId) =>
     set({
       summary,
+      postId,
       showSummary: true,
       status: "success",
     }),
@@ -39,5 +35,6 @@ export const useAIStore = create<AIStore>((set) => ({
   closeSummary: () =>
     set({
       showSummary: false,
+      postId: undefined,
     }),
 }));

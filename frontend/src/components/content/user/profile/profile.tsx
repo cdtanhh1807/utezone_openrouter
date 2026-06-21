@@ -7,7 +7,6 @@ import ProfilePosts from "./profilePost";
 import ProfileArchived from "./profileArchived";
 import ProfileAlbum from "./profileAlbum";
 import ProfileSaved from "./profileSaved";
-import StoryBlock from "../create/storyBlock";
 
 // Icons hiện có
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
@@ -30,6 +29,7 @@ import useConversations from "../chat/useConversation";
 import { jwtDecode } from "jwt-decode";
 import ProfileCatalog from "./profileCatalog";
 import ProfileDetail from "./profileDetail";
+import StoryHighlightList from "./StoryHighlightList";
 import CreatePost from "../create/createPost";
 import { ToastService } from "../../../../services/ToastService";
 
@@ -42,6 +42,7 @@ function Profile() {
   >("posts");
   const [openCreatePost, setOpenCreatePost] = useState<boolean>(false);
   const [step, setStep] = useState<0 | 1 | 2>(0);
+  const [hasHighlights, setHasHighlights] = useState(true);
 
   const boxRef = useRef<HTMLDivElement>(null);
 
@@ -83,6 +84,13 @@ function Profile() {
 
   useEffect(() => {
     setActiveTab("posts");
+    
+    // Reset scroll position to top of the page when transitioning to a different profile
+    window.scrollTo({ top: 0 });
+    const container = document.querySelector(".main-right-side");
+    if (container) {
+      container.scrollTo({ top: 0 });
+    }
   }, [email]);
 
   const canCreateContent = () => {
@@ -109,17 +117,22 @@ function Profile() {
         <div className="profile-body-grid">
           {/* --- Cột trái: Sidebar --- */}
           <div className="profile-sidebar-left">
-            <ProfileDetail />
+            <ProfileDetail email={email} />
           </div>
 
           {/* --- Cột phải: Story, Tabs & Main Feed --- */}
           <div className="profile-main-content">
             {/* Tầng 1: Story Block */}
-            <div className="profile-story-section card-box">
-              <div className="story-wrapper-horizontal">
-                <StoryBlock />
+            {(email === undefined || email === currentUserEmail || hasHighlights) && (
+              <div className="profile-story-section card-box">
+                <div className="story-wrapper-horizontal">
+                  <StoryHighlightList 
+                    email={email} 
+                    onLoadComplete={(count) => setHasHighlights(count > 0)}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Tầng 2: WIDGET TẠO BÀI VIẾT (SÁNG TẠO - DASHBOARD STYLE) */}
             {activeTab === "posts" && email === currentUserEmail && (
@@ -131,7 +144,7 @@ function Profile() {
                   <div className="compose-text">
                     <h4 className="compose-title">
                       {email === currentUserEmail
-                        ? "Khởi tạo góc nhìn mới"
+                        ? "Hôm nay có gì mới?"
                         : "Gửi thông điệp"}
                     </h4>
                     <p className="compose-subtitle">
@@ -250,7 +263,7 @@ function Profile() {
                   ) : (
                     <Inventory2OutlinedIcon />
                   )}
-                  <span>Lưu trữ</span>
+                  <span>Thùng rác</span>
                 </button>
               )}
 
@@ -277,10 +290,10 @@ function Profile() {
 
             {/* Tầng 4: Nội dung Feed hiển thị dựa trên Tab */}
             <div className="feed-content-area">
-              {activeTab === "posts" && <ProfilePosts email={email} />}
-              {activeTab === "album" && <ProfileAlbum email={email} />}
+              {activeTab === "posts" && <ProfilePosts email={email || currentUserEmail || undefined} />}
+              {activeTab === "album" && <ProfileAlbum email={email || currentUserEmail || undefined} />}
               {activeTab === "archived" && <ProfileArchived />}
-              {activeTab === "saved" && <ProfileSaved email={email} />}
+              {activeTab === "saved" && <ProfileSaved email={email || currentUserEmail || undefined} />}
               {activeTab === "catalog" && <ProfileCatalog />}
             </div>
           </div>

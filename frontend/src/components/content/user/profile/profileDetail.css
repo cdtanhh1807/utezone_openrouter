@@ -8,13 +8,15 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .detail-card-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  color: #050505;
+  color: #1c1e21;
   margin: 0;
+  letter-spacing: -0.2px;
 }
 
 /* Phần hiển thị Logo/Avatar khoa */
@@ -59,17 +61,148 @@
 }
 
 .detail-icon {
-  color: #8c939d;
-  font-size: 22px !important;
-  margin-top: 2px;
+  color: #0866ff;
+  opacity: 0.8;
+  font-size: 20px !important;
+  margin-top: 1px;
 }
 
 .detail-text {
-  font-size: 15px;
-  color: #050505;
-  line-height: 1.4;
+  font-size: 14px;
+  color: #4a4d50;
+  line-height: 1.5;
+  font-family: inherit;
 }
 
 .detail-text strong {
   font-weight: 600;
+  color: #1c1e21;
 }
+
+/* Sidebar Container bọc ngoài */
+.profile-sidebar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Card danh sách người đang theo dõi */
+.profile-followed-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #eaeaec;
+  display: flex;
+  flex-direction: column;
+}
+
+.followed-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.followed-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #050505;
+  margin: 0;
+}
+
+.followed-card-count {
+  font-size: 14px;
+  color: #65676b;
+  font-weight: 500;
+}
+
+/* Lưới hiển thị 9 ô */
+.followed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.followed-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  min-width: 0;
+  width: 100%;
+}
+
+.followed-grid-item:hover {
+  transform: translateY(-2px);
+  opacity: 0.85;
+}
+
+.followed-item-avatar {
+  width: 100%;
+  max-width: 80px;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #eaeaec;
+  background-color: #f0f2f5;
+}
+
+.followed-item-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #050505;
+  margin-top: 6px;
+  width: 100%;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 32px;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.followed-loading,
+.followed-empty {
+  padding: 24px 0;
+  text-align: center;
+  color: #65676b;
+  font-size: 14px;
+}
+
+.followed-title-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.followed-arrow-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #65676b;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+  outline: none;
+}
+
+.followed-arrow-btn:hover {
+  background-color: #f0f2f5;
+  color: #050505;
+}
+
+.followed-arrow-btn:focus,
+.followed-arrow-btn:active {
+  outline: none !important;
+  box-shadow: none !important;
+}

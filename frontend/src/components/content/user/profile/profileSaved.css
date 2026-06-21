@@ -32,15 +32,17 @@
   cursor: pointer;
 }
 
-/* IMAGE */
-.collection-item img {
+/* IMAGE & VIDEO */
+.collection-item img,
+.collection-item video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: 0.3s;
 }
 
-.collection-item:hover img {
+.collection-item:hover img,
+.collection-item:hover video {
   transform: scale(1.05);
 }
 

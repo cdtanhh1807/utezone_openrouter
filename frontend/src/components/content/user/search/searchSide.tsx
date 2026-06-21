@@ -64,35 +64,37 @@ const SearchSide = () => {
 
   return (
     <div className="searchSide" ref={containerRef}>
-      <h2 className="search-title">
-        Kết quả tìm kiếm cho: <span>"{keyword}"</span>
-      </h2>
+      <div className="search-container">
+        <h2 className="search-title">
+          Kết quả tìm kiếm cho: <span>"{keyword}"</span>
+        </h2>
 
-      {/* Tabs */}
-      <div className="search-tabs">
-        <button
-          className={tab === "posts" ? "active" : ""}
-          onClick={() => setTab("posts")}
-        >
-          Bài đăng
-        </button>
-        <button
-          className={tab === "users" ? "active" : ""}
-          onClick={() => setTab("users")}
-        >
-          Mọi người
-        </button>
-      </div>
+        {/* Tabs */}
+        <div className="search-tabs">
+          <button
+            className={tab === "posts" ? "active" : ""}
+            onClick={() => setTab("posts")}
+          >
+            Bài đăng
+          </button>
+          <button
+            className={tab === "users" ? "active" : ""}
+            onClick={() => setTab("users")}
+          >
+            Mọi người
+          </button>
+        </div>
 
-      {/* Nội dung */}
-      <div className="search-content">
-        {loading ? (
-          <p>Đang tải...</p>
-        ) : tab === "posts" ? (
-          <SearchPost posts={postResults} />
-        ) : (
-          <SearchUser users={userResults} />
-        )}
+        {/* Nội dung */}
+        <div className="search-content">
+          {loading ? (
+            <p>Đang tải...</p>
+          ) : tab === "posts" ? (
+            <SearchPost posts={postResults} />
+          ) : (
+            <SearchUser users={userResults} />
+          )}
+        </div>
       </div>
     </div>
   );

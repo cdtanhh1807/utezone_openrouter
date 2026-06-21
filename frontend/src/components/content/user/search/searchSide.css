@@ -1,50 +1,73 @@
 .searchSide {
   flex: 1;
-    overflow-y: auto; /* Quan trọng */
-    padding: 20px;
-    width: 100%;
-    min-height: 100vh;
+  overflow-y: auto; /* Quan trọng */
+  padding: 30px 50px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100vh;
+  background-color: rgb(246, 246, 248);
+  display: flex;
+  justify-content: center;
+}
+
+.search-container {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
 }
 
 .search-title {
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    max-width: 1200px;
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  margin-left: 0;
 }
 
 .search-title span {
-    color: #4a90e2;
+  color: #4a90e2;
 }
 
 .search-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  margin-left: 0;
 }
 
 .search-tabs button {
-    padding: 8px 16px;
-    background: white;
-    border: none;
-    border-radius: 15px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: 0.2s;
+  padding: 8px 16px;
+  background: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
 }
 
 .search-tabs .active {
-    background: #f2f3f5;
-    border: white;
+  background: #1a60f7;
+  color: white;
+  border: white;
 }
+.search-tabs button,
+.search-tabs button:hover,
+.search-tabs button:focus,
+.search-tabs button:active,
+.search-tabs button:focus-visible,
+.search-tabs .active {
+  border: none;
+  outline: none;
+  box-shadow: none;
+} 
 
 .search-content {
-      flex-grow: 1;
-    overflow: visible;
-    margin-top: 15px;
-    border-top: 1px solid #ddd;
-    min-height: 100vh;
-    margin-left: 85px;
+  flex-grow: 1;
+  overflow: visible;
+  margin-top: 15px;
+  border-top: 1px solid #ddd;
+  min-height: 100vh;
+  margin-left: 0;
 }
 
 

@@ -15,6 +15,7 @@ interface Post {
   _id: string;
   image: string;
   createdAt: string;
+  isVideo?: boolean;
 }
 
 interface Collection {
@@ -127,6 +128,9 @@ function ProfileSaved({ email }: { email?: string }) {
                 const resPost = await postAPI.getById(postId);
                 const post = resPost?.post;
 
+                const firstThumbnail = post?.thumbnails?.[0] || "";
+                const isVideo = /\.(mp4|mov|avi|webm)$/i.test(firstThumbnail);
+
                 return {
                   _id: postId,
                   image:
@@ -134,12 +138,14 @@ function ProfileSaved({ email }: { email?: string }) {
                     post?.image ||
                     "https://via.placeholder.com/300",
                   createdAt: post?.createdAt || new Date().toISOString(),
+                  isVideo,
                 };
               } catch {
                 return {
                   _id: postId,
                   image: "https://via.placeholder.com/300",
                   createdAt: new Date().toISOString(),
+                  isVideo: false,
                 };
               }
             }),
@@ -369,7 +375,11 @@ function ProfileSaved({ email }: { email?: string }) {
                   />
                 </div>
 
-                <img src={post.image} alt="saved" />
+                {post.isVideo ? (
+                  <video src={post.image} muted playsInline autoPlay loop />
+                ) : (
+                  <img src={post.image} alt="saved" />
+                )}
 
                 <div className="overlay">
                   {new Date(post.createdAt).toLocaleDateString()}

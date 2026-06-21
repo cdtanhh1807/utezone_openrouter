@@ -34,13 +34,15 @@ function Home() {
 
   return (
     <div className="Home">
-      <div className="middleSide">
+      <div className={`middleSide ${isSearching ? "full-width" : ""}`}>
         {isSearching ? <SearchSide /> : <MiddleSide />}
       </div>
 
-      <div className="rightSide">
-        <RightSide />
-      </div>
+      {!isSearching && (
+        <div className="rightSide">
+          <RightSide />
+        </div>
+      )}
     </div>
   );
 }
@@ -48,4 +50,4 @@ function Home() {
 export default Home;
 
 
-// 16/6/2026
+// 21/6/2026

@@ -234,7 +234,7 @@ const CreatePost = ({
       // 🔥 moderation success
       setStatus("success");
 
-      ToastService.success("Đăng bài thành công!");
+      ToastService.success("Đăng bài viết thành công!");
 
       setTimeout(() => {
         setStatus("idle");
@@ -242,7 +242,9 @@ const CreatePost = ({
     } catch (err) {
       setStatus("idle");
 
-      ToastService.error("Đăng bài thất bại, vui lòng thử lại.");
+      ToastService.error(
+        "AI phát hiện nội dung có thể vi phạm quy định cộng đồng. Vui lòng kiểm tra lại.",
+      );
     }
 
     setLoading(false);

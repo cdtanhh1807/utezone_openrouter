@@ -15,8 +15,8 @@
 /* Modal container */
 .modal-content {
     background-color: #fff;
-    width: 500px;
-    max-width: 90%;
+    width: 600px;
+    max-width: 100%;
     border-radius: 12px;
     padding: 20px;
     position: relative;
@@ -86,6 +86,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
 }
 
 .user-avatar {
@@ -94,12 +95,21 @@
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid #ddd;
+    flex-shrink: 0;
+}
+
+.user-text {
+    min-width: 0;
+    cursor: pointer;
 }
 
 .user-text h4 {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-text p {

@@ -35,15 +35,20 @@ const RelationshipModal: React.FC<Props> = ({
   const [followers, setFollowers] = useState<UserItem[]>([]);
   const [followed, setFollowed] = useState<UserItem[]>([]);
   const [blocked, setBlocked] = useState<UserItem[]>([]);
+  const [myFollowedEmails, setMyFollowedEmails] = useState<string[]>([]);
 
   const navigate = useNavigate();
 
   // Đồng bộ activeTab khi initialTab thay đổi (quan trọng khi chuyển giữa Follow/Followed)
   useEffect(() => {
     if (isOpen) {
-      setActiveTab(initialTab);
+      if (myEmail !== profileEmail && initialTab === 2) {
+        setActiveTab(0);
+      } else {
+        setActiveTab(initialTab);
+      }
     }
-  }, [isOpen, initialTab]);
+  }, [isOpen, initialTab, myEmail, profileEmail]);
 
   const loadUsers = async (
     emails: string[],
@@ -69,7 +74,16 @@ const RelationshipModal: React.FC<Props> = ({
   const reloadRelations = async () => {
     try {
       const relation: GetRelationResponse =
-        await AccountService.get_account_relation(myEmail);
+        await AccountService.get_account_relation(profileEmail);
+      
+      if (myEmail === profileEmail) {
+        setMyFollowedEmails(relation.followed ?? []);
+      } else {
+        const myRelation: GetRelationResponse =
+          await AccountService.get_account_relation(myEmail);
+        setMyFollowedEmails(myRelation.followed ?? []);
+      }
+
       await Promise.all([
         loadUsers(relation.followers ?? [], setFollowers),
         loadUsers(relation.followed ?? [], setFollowed),
@@ -84,7 +98,7 @@ const RelationshipModal: React.FC<Props> = ({
     if (!isOpen) return;
     setLoading(true);
     reloadRelations().finally(() => setLoading(false));
-  }, [isOpen, myEmail]);
+  }, [isOpen, myEmail, profileEmail]);
 
   const getUsers = () => {
     if (activeTab === 0) return followers;
@@ -99,11 +113,15 @@ const RelationshipModal: React.FC<Props> = ({
 
   if (!isOpen) return null;
 
+  const tabs = myEmail === profileEmail
+    ? ["Người theo dõi", "Đang theo dõi", "Chặn"]
+    : ["Người theo dõi", "Đang theo dõi"];
+
   return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-tabs">
-          {["Người theo dõi", "Đang theo dõi", "Chặn"].map((tab, index) => (
+          {tabs.map((tab, index) => (
             <div
               key={index}
               className={`tab ${activeTab === index ? "active" : ""}`}
@@ -132,34 +150,51 @@ const RelationshipModal: React.FC<Props> = ({
                     className="user-text"
                     onClick={() => goToProfile(user.email)}
                   >
-                    <h4>{user.fullName}</h4>
+                    <h4>
+                      {user.fullName.length > 42
+                        ? `${user.fullName.substring(0, 42)}...`
+                        : user.fullName}
+                    </h4>
                   </div>
                 </div>
 
                 <div className="action-btn-wrapper">
-                  {activeTab === 0 &&
-                    (followed.some((f) => f.email === user.email) ? (
-                      <UnFollowButton
-                        ownerEmail={myEmail}
-                        clientEmail={user.email}
-                        onUnFollowSuccess={reloadRelations}
-                      />
-                    ) : (
-                      <FollowButton
-                        ownerEmail={myEmail}
-                        clientEmail={user.email}
-                        onFollowSuccess={reloadRelations}
-                      />
-                    ))}
+                  {activeTab === 0 && (
+                    myEmail === user.email ? null : (
+                      myFollowedEmails.includes(user.email) ? (
+                        <UnFollowButton
+                          ownerEmail={myEmail}
+                          clientEmail={user.email}
+                          onUnFollowSuccess={reloadRelations}
+                        />
+                      ) : (
+                        <FollowButton
+                          ownerEmail={myEmail}
+                          clientEmail={user.email}
+                          onFollowSuccess={reloadRelations}
+                        />
+                      )
+                    )
+                  )}
 
                   {activeTab === 1 && (
-                    <UnFollowButton
-                      ownerEmail={myEmail}
-                      clientEmail={user.email}
-                      onUnFollowSuccess={reloadRelations}
-                    />
+                    myEmail === user.email ? null : (
+                      myFollowedEmails.includes(user.email) ? (
+                        <UnFollowButton
+                          ownerEmail={myEmail}
+                          clientEmail={user.email}
+                          onUnFollowSuccess={reloadRelations}
+                        />
+                      ) : (
+                        <FollowButton
+                          ownerEmail={myEmail}
+                          clientEmail={user.email}
+                          onFollowSuccess={reloadRelations}
+                        />
+                      )
+                    )
                   )}
-                  {activeTab === 2 && (
+                  {activeTab === 2 && myEmail === profileEmail && (
                     <button
                       className="btn-message"
                       onClick={async () => {
@@ -171,10 +206,6 @@ const RelationshipModal: React.FC<Props> = ({
 
                           ToastService.success("Bỏ chặn thành công");
                           reloadRelations();
-                          setTimeout(() => {
-                            window.location.reload();
-                          }, 500);
-                          navigate("/home");
                         } catch (error) {
                           console.error("❌ Lỗi bỏ chặn:", error);
                           ToastService.error("Bỏ chặn thất bại");

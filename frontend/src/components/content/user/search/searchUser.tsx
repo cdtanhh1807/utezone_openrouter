@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./searchUser.css";
 import { jwtDecode } from "jwt-decode";
 import { FollowButton } from "../relationship/follow";
@@ -15,8 +15,6 @@ interface JwtPayload {
 }
 
 const SearchUser = ({ users }: Props) => {
-  const [userList, setUserList] = useState(users);
-
   // Lấy email người dùng hiện tại từ token
   const token = localStorage.getItem("token");
   let currentUserEmail: string | null = null;
@@ -28,6 +26,15 @@ const SearchUser = ({ users }: Props) => {
       console.error("❌ Token không hợp lệ:", err);
     }
   }
+
+  const [userList, setUserList] = useState<any[]>(() =>
+    users.filter((user) => user.email !== currentUserEmail)
+  );
+
+  useEffect(() => {
+    setUserList(users.filter((user) => user.email !== currentUserEmail));
+  }, [users, currentUserEmail]);
+
   const navigate = useNavigate();
 
   const goToProfile = (email: string) => {

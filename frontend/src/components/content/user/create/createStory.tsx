@@ -296,7 +296,9 @@ const [tempUrlVideo, setTempUrlVideo] = useState<File | null>(null);
     } catch (err) {
       setStatus("idle");
       console.error(err);
-      ToastService.error("Đăng tin thất bại, vui lòng thử lại");
+      ToastService.error(
+        "AI phát hiện nội dung có thể vi phạm quy định cộng đồng. Vui lòng kiểm tra lại.",
+      );
     }
   };
 

@@ -2,8 +2,12 @@
 .tab-content {
     display: flex;
     flex-direction: column;
-    gap: 0px;
-    padding: 10px;
+    gap: 12px;
+    padding: 20px 0;
+    margin-left: 0;
+    margin-right: auto;
+    width: 100%;
+    max-width: 800px;
 }
 
 
@@ -12,12 +16,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-
+    margin-top: 10px;
     background: #fff;
     padding: 6px 15px;
     border-radius: 30px;
     border: 1px solid #e5e7eb;
-
     transition: background 0.2s ease, transform 0.2s ease;
 }
 

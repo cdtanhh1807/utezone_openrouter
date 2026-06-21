@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { postAPI } from "../../../../services/PostService";
 import FileService, {
@@ -14,13 +14,14 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import DepartmentMultiSelect from "./departmentSelect";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { ToastService } from "../../../../services/ToastService";
+import { useAIStore } from "../stores/aiStore";
 import "./editPost.css";
 
 interface EditPostProps {
   isOpen: boolean;
   onClose: () => void;
   post: Post | null;
-  onPostUpdated?: () => void;
+  onPostUpdated?: (postId: string) => void;
 }
 
 interface OldPreview {
@@ -52,6 +53,7 @@ const normalizeVisibility = (
 /* ================================================= */
 
 const EditPost = ({ isOpen, onClose, post, onPostUpdated }: EditPostProps) => {
+  const { setStatus } = useAIStore();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [oldPreviews, setOldPreviews] = useState<OldPreview[]>([]);
@@ -64,7 +66,6 @@ const EditPost = ({ isOpen, onClose, post, onPostUpdated }: EditPostProps) => {
   );
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
 
   interface OldAttachment {
     id: string;
@@ -89,6 +90,22 @@ const EditPost = ({ isOpen, onClose, post, onPostUpdated }: EditPostProps) => {
   /* ================== FIX QUAN TRỌNG ================== */
   const isMediaFile = (fileId: string) => {
     return /\.(jpg|jpeg|png|gif|webp|mp4|mov|avi)$/i.test(fileId);
+  };
+
+  const checkIsVideo = (url: string) => {
+    if (!url) return false;
+    if (url.startsWith("blob:")) {
+      const idx = newPreviews.indexOf(url);
+      if (idx !== -1 && newFiles[idx]) {
+        return newFiles[idx].type.startsWith("video/");
+      }
+      return false;
+    }
+    const oldMediaItem = oldPreviews.find((p) => p.url === url);
+    if (oldMediaItem) {
+      return /\.(mp4|mov|mkv|avi|webm)$/i.test(oldMediaItem.id);
+    }
+    return /\.(mp4|mov|mkv|avi|webm)$/i.test(url) || url.toLowerCase().includes("video");
   };
 
   const getFileNameFromId = (fileId: string) => {
@@ -195,12 +212,13 @@ const EditPost = ({ isOpen, onClose, post, onPostUpdated }: EditPostProps) => {
   const handleUpdatePost = async () => {
     if (!post) return;
 
-    if (!content.trim()) {
-      ToastService.warning("Nội dung không được để trống");
-      return;
-    }
+    // Tắt modal editPost đi ngay lập tức
+    onClose();
 
     setLoading(true);
+    // Dùng aiButton để thể hiện sự kiểm duyệt
+    setStatus("moderating");
+
     try {
       // ====== 1. FILE CŨ ======
       const remainingMediaIds = oldPreviews.map((p) => p.id).filter(Boolean);
@@ -244,12 +262,20 @@ const EditPost = ({ isOpen, onClose, post, onPostUpdated }: EditPostProps) => {
         category: selectedDepartments,
       });
 
+      // Khi thành công thì thông báo
+      setStatus("success");
       ToastService.success("Cập nhật bài viết thành công!");
-      onClose();
-      onPostUpdated?.();
+      onPostUpdated?.(post._id);
+
+      setTimeout(() => {
+        setStatus("idle");
+      }, 2500);
     } catch (err) {
       console.error(err);
-      ToastService.error("Đã xảy ra lỗi khi cập nhật bài viết.");
+      setStatus("idle");
+      ToastService.error(
+        "AI phát hiện nội dung có thể vi phạm quy định cộng đồng. Vui lòng kiểm tra lại.",
+      );
     }
 
     setLoading(false);
@@ -260,7 +286,7 @@ const EditPost = ({ isOpen, onClose, post, onPostUpdated }: EditPostProps) => {
   return createPortal(
     <AnimatePresence>
       <motion.div
-        className="modal-backdrop"
+        className="ep-modal-backdrop"
         variants={backdrop}
         initial="hidden"
         animate="visible"
@@ -278,48 +304,99 @@ const EditPost = ({ isOpen, onClose, post, onPostUpdated }: EditPostProps) => {
           {/* LEFT */}
           <div className="edit-left">
             <div className="ed-carousel-container">
-              {allPreviews[currentIndex]?.endsWith(".mp4") ? (
-                <video controls className="preview-video">
-                  <source src={allPreviews[currentIndex]} />
-                </video>
+              {allPreviews.length > 0 ? (
+                <>
+                  {/* Background Blur */}
+                  {checkIsVideo(allPreviews[currentIndex]) ? (
+                    <video
+                      className="compose-media-blur"
+                      src={allPreviews[currentIndex]}
+                      muted
+                      playsInline
+                      autoPlay
+                      loop
+                    />
+                  ) : (
+                    <img
+                      className="compose-media-blur"
+                      src={allPreviews[currentIndex]}
+                      alt=""
+                    />
+                  )}
+
+                  {/* Main Media */}
+                  {checkIsVideo(allPreviews[currentIndex]) ? (
+                    <video controls className="compose-media">
+                      <source src={allPreviews[currentIndex]} />
+                    </video>
+                  ) : (
+                    <img
+                      src={allPreviews[currentIndex]}
+                      className="compose-media"
+                      alt=""
+                    />
+                  )}
+
+                  {currentIndex > 0 && (
+                    <ChevronLeftOutlinedIcon
+                      className="nav-left"
+                      onClick={() => setCurrentIndex((i) => i - 1)}
+                    />
+                  )}
+                  {currentIndex < allPreviews.length - 1 && (
+                    <ChevronRightOutlinedIcon
+                      className="nav-right"
+                      onClick={() => setCurrentIndex((i) => i + 1)}
+                    />
+                  )}
+                </>
               ) : (
-                <img
-                  src={allPreviews[currentIndex]}
-                  className="preview-image"
-                />
-              )}
-              {currentIndex > 0 && (
-                <ChevronLeftOutlinedIcon
-                  className="nav-left"
-                  onClick={() => setCurrentIndex((i) => i - 1)}
-                />
-              )}
-              {currentIndex < allPreviews.length - 1 && (
-                <ChevronRightOutlinedIcon
-                  className="nav-right"
-                  onClick={() => setCurrentIndex((i) => i + 1)}
-                />
+                <div className="compose-placeholder">
+                  <label className="upload-center">
+                    Thêm ảnh hoặc video
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      multiple
+                      onChange={handleUpload}
+                    />
+                  </label>
+                </div>
               )}
             </div>
 
             <div className="thumbnail-bar">
-              {allPreviews.map((url, idx) => (
-                <div key={idx} style={{ position: "relative" }}>
-                  <img
-                    src={url}
-                    className={`thumbnail ${
-                      idx === currentIndex ? "active-thumb" : ""
-                    }`}
-                    onClick={() => setCurrentIndex(idx)}
-                  />
-                  <span
-                    className="delete-thumb"
-                    onClick={() => handleDelete(idx)}
-                  >
-                    ✕
-                  </span>
-                </div>
-              ))}
+              {allPreviews.map((url, idx) => {
+                const isVideoItem = checkIsVideo(url);
+                return (
+                  <div key={idx} className="thumbnail-wrapper">
+                    {isVideoItem ? (
+                      <video
+                        src={url}
+                        className={`thumbnail ${
+                          idx === currentIndex ? "active-thumb" : ""
+                        }`}
+                        onClick={() => setCurrentIndex(idx)}
+                        muted
+                      />
+                    ) : (
+                      <img
+                        src={url}
+                        className={`thumbnail ${
+                          idx === currentIndex ? "active-thumb" : ""
+                        }`}
+                        onClick={() => setCurrentIndex(idx)}
+                      />
+                    )}
+                    <span
+                      className="delete-thumb"
+                      onClick={() => handleDelete(idx)}
+                    >
+                      ✕
+                    </span>
+                  </div>
+                );
+              })}
               <label className="thumbnail add-thumb">
                 +
                 <input type="file" multiple onChange={handleUpload} />

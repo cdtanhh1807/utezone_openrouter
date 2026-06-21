@@ -929,6 +929,11 @@ const PostDetail: React.FC<DetailPostProps> = ({
   const handleRemove = (post: Post) => {
     setPostMenuOpen((prev) => ({ ...prev, [post._id]: false }));
 
+    if (currentUserRole === "Moderator" && userInfoMap[post.createdBy]?.role === "Moderator") {
+      ToastService.error("Moderator không thể gỡ bài viết của Moderator khác!");
+      return;
+    }
+
     // dùng requestAnimationFrame để chắc chắn render cập nhật
     requestAnimationFrame(() => {
       setSelectedPost(post); // lưu bài viết đang gỡ
@@ -1557,7 +1562,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
                               ✨ Tóm tắt bài viết
                             </div>
 
-                            {currentUserRole === "Moderator" && (
+                            {currentUserRole === "Moderator" && userInfoMap[activePost.createdBy]?.role !== "Moderator" && (
                               <div
                                 className="menuItem delete"
                                 onClick={() => handleRemove(activePost)}
@@ -2409,13 +2414,14 @@ const PostDetail: React.FC<DetailPostProps> = ({
         onClose={() => {
           setIsModalOpen(false);
           setEditingPost(null);
+          onClose(); // Tắt luôn cả postDetail
         }}
         post={editingPost}
-        onPostUpdated={async () => {
-          if (!editingPost) return;
+        onPostUpdated={async (postId) => {
+          if (!postId) return;
 
           try {
-            const res = await postAPI.getById(editingPost._id);
+            const res = await postAPI.getById(postId);
             if (onActivePostUpdate) {
               onActivePostUpdate(res.post || res);
             }
@@ -2423,8 +2429,8 @@ const PostDetail: React.FC<DetailPostProps> = ({
             console.error("Không thể load lại post sau khi edit:", err);
           }
 
-          setIsModalOpen(false);
-          setEditingPost(null);
+          // Tắt luôn cả postDetail khi chỉnh sửa xong
+          onClose();
         }}
       />
 

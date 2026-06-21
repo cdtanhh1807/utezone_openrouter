@@ -216,6 +216,7 @@ async def get_account_info(
         raise HTTPException(status_code=404, detail="Account not found")
 
     user_info = account.userInfo.dict() if account.userInfo else {}
+    user_info["role"] = account.role
 
     avatar_file_id = user_info.get("avatar")
     if avatar_file_id:

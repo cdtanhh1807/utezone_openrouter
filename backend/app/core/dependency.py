@@ -10,6 +10,7 @@ from services.impls.post_catalog_service_impl import PostCatalogServiceImpl
 from services.impls.post_saved_service_impl import PostSavedServiceImpl
 from services.impls.report_service_impl import ReportServiceImpl
 from services.impls.search_service_impl import SearchServiceImpl
+from services.impls.story_highlight_service_impl import StoryHighlightServiceImpl
 from services.impls.story_service_impl import StoryServiceImpl
 from services.interfaces.ai_service_interface import IAIService
 from services.interfaces.announce_service_interface import IAnnounceService
@@ -27,6 +28,7 @@ from services.interfaces.account_service_interface import IAccountService
 from services.impls.account_service_impl import AccountServiceImpl
 from services.interfaces.report_service_interface import IReportService
 from services.interfaces.search_service_interface import ISearchService
+from services.interfaces.story_highlight_service_interface import IStoryHighlightService
 from services.interfaces.story_service_interface import IStoryService
 
 def get_post_service() -> IPostService:
@@ -73,3 +75,6 @@ def get_incident_report_service() -> IIncidentReportService:
 
 def get_post_catalog_service() -> IPostCatalogService:
     return PostCatalogServiceImpl()
+
+def get_story_highlight_service() -> IStoryHighlightService:
+    return StoryHighlightServiceImpl()

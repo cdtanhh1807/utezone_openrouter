@@ -23,5 +23,9 @@ class IStoryService(ABC):
         pass
 
     @abstractmethod
+    async def get_archive_stories(self, user_id: str) -> list:
+        pass
+
+    @abstractmethod
     async def delete(self, story_id: DeleteStoryRequest) -> Optional[DeleteStoryResponse]:
         pass

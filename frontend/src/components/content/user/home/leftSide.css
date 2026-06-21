@@ -17,8 +17,8 @@
   display: flex;
   flex-direction: column;
   margin-top: 90px;
-  margin-left: 28px;
-
+  margin-left: 20px;
+margin-right: 20px;
 
 }
 .navLink {

@@ -71,6 +71,21 @@ class StoryServiceImpl(IStoryService):
         # Sắp xếp user theo latestStoryAt giảm dần
         result.sort(key=lambda x: x.latestStoryAt, reverse=True)
         return result
+
+    async def get_archive_stories(self, user_id: str) -> list:
+        stories = await StoryRepository.find_archive_by_user(user_id)
+        for story in stories:
+            if story.get("thumbnails") and len(story["thumbnails"]) > 0:
+                story["mediaUrls"] = [
+                    FileService.get_file_url(file_id) for file_id in story["thumbnails"]
+                ]
+            else:
+                story["mediaUrls"] = []
+            if story.get("music") and story["music"].get("fileid"):
+                story["music"]["url"] = FileService.get_file_url(story["music"]["fileid"])
+        # Sắp xếp theo ngày tạo mới nhất lên trước
+        stories.sort(key=lambda x: x.get("createdAt"), reverse=True)
+        return stories
     
     async def delete(self, story_id: DeleteStoryRequest) -> Optional[DeleteStoryResponse]:
         rs = await StoryRepository.delete(story_id.id)

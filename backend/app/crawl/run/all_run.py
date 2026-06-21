@@ -18,7 +18,7 @@ from crawl.crawler.ite_crawl import ITEPlaywrightCrawler
 
 
 INTERVAL = 300
-MAX_PAGES = 5
+MAX_PAGES = 1
 
 
 async def run_crawler_loop(
