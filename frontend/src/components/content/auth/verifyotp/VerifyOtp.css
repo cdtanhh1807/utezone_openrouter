@@ -1,124 +1,130 @@
-/* VerifyOtp.css */
-.verify-container {
-    display: flex;
-    min-height: 100vh;
-    width: 100%;
+/* VerifyOtp.css - dùng lại style từ Login.css, giống OtpForgotPassword */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding: 20px;
 }
 
-/* Bên trái chứa hình ảnh */
-.verify-left {
-    width: 600px;
-    flex: 1;
-    background-color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 100px;
+.login-card {
+  max-width: 500px;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  padding: 40px 35px;
 }
 
-.verify-left .verify-image {
-    width: 80%;
-    height: auto;
-    object-fit: cover;
+.login-logo {
+  text-align: center;
+  margin-bottom: 12px;
+}
+.logo-img {
+  height: 140px;
+  width: auto;
 }
 
-.verify-logo-image {
-    width: 250px;
-    margin-bottom: 20px;
+.slogan {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 28px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+.slogan-blue {
+  color: #0a4ca1;
 }
 
-/* Bên phải chứa form */
-.verify-right {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
-    background-color: #fff;
+form input[type="text"] {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  border: 1px solid #dce0e8;
+  border-radius: 12px;
+  background: #fafbfc;
+  box-sizing: border-box;
+  margin-bottom: 14px;
+}
+form input:focus {
+  outline: none;
+  border-color: #0a4ca1;
+  box-shadow: 0 0 0 3px rgba(10, 76, 161, 0.12);
+  background: #ffffff;
 }
 
-.verify-right h2 {
-    margin-bottom: 15px;
-    font-size: 24px;
-    color: #333;
-    text-align: center;
+.signin-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  background: #0a4ca1;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 14px;
 }
-
-.verify-right p {
-    text-align: center;
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 20px;
+.signin-btn:hover:not(:disabled) {
+  background: #155db2;
 }
-
-.verify-right form {
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-}
-
-.verify-right input {
-    width: 300px;
-    padding: 12px 15px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    margin-left: 30px;
-}
-
-.verify-btn {
-    padding: 12px 15px;
-    font-size: 16px;
-    width: 334px;
-    height: 40px;
-    background-color: #0a4ca1;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-bottom: 15px;
-    transition: background 0.3s;
-    margin-left: 30px;
-}
-
-.verify-btn:hover {
-    background-color: #155db2;
+.signin-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .error-message {
-    color: red;
-    margin-bottom: 15px;
-    text-align: center;
-    font-weight: bold;
+  color: #d32f2f;
+  font-size: 14px;
+  text-align: center;
+  margin: -8px 0 12px;
 }
 
-/* Responsive nhỏ hơn 768px thì xếp dọc */
-@media (max-width: 768px) {
-    .verify-container {
-        flex-direction: column;
-    }
+.create-account {
+  text-align: center;
+  margin: 10px 0 18px;
+}
+.create-account a {
+  color: #0a4ca1;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 15px;
+}
+.create-account a:hover {
+  text-decoration: underline;
+}
 
-    .verify-left, .verify-right {
-        flex: none;
-        width: 100%;
-        min-height: 300px;
-    }
+.terms {
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+  margin-top: 6px;
+}
 
-    .verify-left .verify-image {
-        width: 100%;
-        height: 100%;
-    }
+@media (max-width: 560px) {
+  .login-card {
+    padding: 30px 20px;
+  }
+  .logo-img {
+    height: 55px;
+  }
+  .slogan {
+    font-size: 20px;
+  }
+}
 
-    .verify-right {
-        padding: 20px;
-    }
-
-    .verify-right input,
-    .verify-btn {
-        margin-left: 0;
-        width: 90%;
-    }
+body.login-page {
+  display: block !important;
+  place-items: unset !important;
+  justify-content: unset !important;
+  align-items: unset !important;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  margin: 0;
+  padding: 0;
 }

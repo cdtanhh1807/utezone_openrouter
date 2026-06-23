@@ -15,6 +15,7 @@ interface ReportModalProps {
   contentId?: string;
   contentParentId?: string;
   path?: string;
+  onSuccess?: () => void;
 }
 
 interface Policy {
@@ -59,6 +60,7 @@ const ReportModal = ({
   contentId,
   contentParentId,
   path,
+  onSuccess,
 }: ReportModalProps) => {
   const [policy, setPolicy] = useState<Policy | null>(null);
   const [selectedAction, setSelectedAction] = useState("");
@@ -98,6 +100,7 @@ const ReportModal = ({
       ToastService.success("Tố cáo đã được gửi thành công.");
       setSelectedAction("");
       setCustomReason("");
+      if (onSuccess) onSuccess();
       onClose();
     });
   };

@@ -129,33 +129,34 @@
   margin-top: 8px;
 }
 
-.btn-cancel,
-.btn-save {
-  padding: 10px 16px;
+.btn-cancel-edit,
+.btn-save-edit {
+  padding: 5px 5px;
   border-radius: 10px;
   font-size: 14px;
   cursor: pointer;
   font-weight: 600;
   transition: 0.25s;
   border: none;
+
 }
 
 /* Cancel */
-.btn-cancel {
+.btn-cancel-edit {
   background: #eee;
 }
 
-.btn-cancel:hover {
+.btn-cancel-edit:hover {
   background: #ddd;
 }
 
 /* Save */
-.btn-save {
+.btn-save-edit {
   background: #0095f6;
   color: white;
 }
 
-.btn-save:hover {
+.btn-save-edit:hover {
   background: #007ed6;
 }
 

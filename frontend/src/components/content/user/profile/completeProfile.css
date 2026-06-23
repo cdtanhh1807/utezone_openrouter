@@ -324,6 +324,24 @@
   cursor: not-allowed;
 }
 
+.suggest-item .btn-follow,
+.suggest-item .btn-unfollow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.suggest-item .btn-unfollow {
+  background: #e4e6eb;
+  color: #050505;
+}
+
+.suggest-item .btn-unfollow:hover {
+  background: #d8dadf;
+}
+
 /* ===== Skip Button ===== */
 .modal-suggest > button {
   margin-top: 15px;

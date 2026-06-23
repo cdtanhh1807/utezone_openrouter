@@ -31,6 +31,7 @@ export const FollowButton = ({
       if (res.message) {
         setMessage("Follow thành công!");
         if (onFollowSuccess) onFollowSuccess(); // ⬅ cập nhật FE
+        window.dispatchEvent(new CustomEvent("relation-changed"));
       } else {
         setMessage("Follow thất bại!");
       }

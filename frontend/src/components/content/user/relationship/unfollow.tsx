@@ -19,7 +19,10 @@ export const UnFollowButton = ({ ownerEmail, clientEmail, onUnFollowSuccess }: U
 
     try {
       const res = await AccountService.un_follow(data);
-      if (res.message && onUnFollowSuccess) onUnFollowSuccess();
+      if (res.message) {
+        if (onUnFollowSuccess) onUnFollowSuccess();
+        window.dispatchEvent(new CustomEvent("relation-changed"));
+      }
     } catch (err) {
       console.error(err);
     } finally {

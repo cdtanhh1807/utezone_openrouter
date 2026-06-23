@@ -1,153 +1,241 @@
-/* Container chính chia 2 cột */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* Container căn giữa màn hình */
 .login-container {
-    display: flex;
-    min-height: 100vh;
-    width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding: 20px;
 }
 
-/* Bên trái chứa hình ảnh */
-.login-left {
-    width: 600px;
-    flex: 1;
-    background-color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 100px;
+/* Card chính */
+.login-card {
+  max-width: 500px;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  padding: 40px 35px;
+  transition: all 0.2s;
 }
 
-.login-left .login-image {
-    width: 80%;
-    height: auto;
-    object-fit: cover;
+/* Logo */
+.login-logo {
+  text-align: center;
+  margin-bottom: 12px;
 }
-.login-utezone-image{
-    width: 250px;
-}
-
-/* Bên phải chứa form */
-.login-right {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
-    background-color: #fff;
+.logo-img {
+  height: 140px;
+  width: auto;
 }
 
-.login-right h2 {
-    margin-bottom: 30px;
-    font-size: 28px;
-    color: #333;
+/* Slogan - một dòng */
+.slogan {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 28px;
+  letter-spacing: 0.3px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+.slogan-blue {
+  color: #0a4ca1;
+}
+.slogan-text {
+  color: #1a1a1a;
 }
 
-.login-right form {
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
+/* Divider chính (Đăng nhập vào UTEZone) */
+.divider {
+  display: flex;
+  align-items: center;
+  color: #b0b8c5;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 10px 0 20px;
+}
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e0e4ea;
+}
+.divider::before {
+  margin-right: 16px;
+}
+.divider::after {
+  margin-left: 16px;
 }
 
-.login-right input {
-    width: 300px;
-    height: 18px;
-    margin-bottom: 15px;
-    padding: 12px 15px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin-left: 30px
+/* Social divider (Hoặc tiếp tục với) */
+.social-divider {
+  display: flex;
+  align-items: center;
+  color: #b0b8c5;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 20px 0 20px;
+}
+.social-divider::before,
+.social-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e0e4ea;
+}
+.social-divider::before {
+  margin-right: 16px;
+}
+.social-divider::after {
+  margin-left: 16px;
 }
 
-.login-btn {
-    padding: 12px 15px;
-    font-size: 16px;
-    width: 334px;
-    height: 40px;
-    background-color: #0a4ca1;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-bottom: 15px;
-    transition: background 0.3s;
-    margin-left: 30px
+/* Form inputs */
+form input[type="text"],
+form input[type="password"] {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  border: 1px solid #dce0e8;
+  border-radius: 12px;
+  background: #fafbfc;
+  box-sizing: border-box;
+  margin-bottom: 14px;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+form input:focus {
+  outline: none;
+  border-color: #0a4ca1;
+  box-shadow: 0 0 0 3px rgba(10, 76, 161, 0.12);
+  background: #ffffff;
 }
 
-.login-btn:hover {
-    background-color: #155db2;
-}
-
-.error-message {
-    color: red;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-.social-login {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 15px;
-}
-
-.login-links {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    font-size: 14px;
-}
-
-.login-links a {
-    font-size: 13px;
-    font-weight: 600;
-    color: black;   
-    text-decoration: none;
-}
-
-.login-links a:hover {
-    text-decoration: underline;
-}
-
-.password-wrapper{
+.password-wrapper {
   position: relative;
   width: 100%;
 }
-
-.password-wrapper input{
-  width: 100%;
-  padding-right: 45px;
-  max-width: 270px;
+.password-wrapper input {
+  padding-right: 48px;
 }
-
-.toggle-password{
+.toggle-password {
   position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 16px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  color: #777;
-  margin-right: 30px;
+  color: #888;
+  height: 100%;
 }
-/* Responsive nhỏ hơn 768px thì xếp dọc */
-@media (max-width: 768px) {
-    .login-container {
-        flex-direction: column;
-    }
 
-    .login-left, .login-right {
-        flex: none;
-        width: 100%;
-        min-height: 300px;
-    }
+.options {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 14px;
+  margin: 4px 0 20px;
+}
+.forgot {
+  color: #0a4ca1;
+  text-decoration: none;
+  font-weight: 500;
+}
+.forgot:hover {
+  text-decoration: underline;
+}
 
-    .login-left .login-image {
-        width: 100%;
-        height: 100%;
-    }
+.signin-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  background: #0a4ca1;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  margin-bottom: 14px;
+}
+.signin-btn:hover:not(:disabled) {
+  background: #155db2;
+}
+.signin-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.signin-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 
-    .login-right {
-        padding: 20px;
-    }
+.error-message {
+  color: #d32f2f;
+  font-size: 14px;
+  text-align: center;
+  margin: -8px 0 12px;
+}
+
+.create-account {
+  text-align: center;
+  margin: 10px 0 18px;
+}
+.create-account a {
+  color: #0a4ca1;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 15px;
+}
+.create-account a:hover {
+  text-decoration: underline;
+}
+
+.social-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.terms {
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+.terms a {
+  color: #0a4ca1;
+  text-decoration: none;
+}
+.terms a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 560px) {
+  .login-card {
+    padding: 30px 20px;
+  }
+  .logo-img {
+    height: 55px;
+  }
+  .slogan {
+    font-size: 20px;
+  }
+}
+
+/* Loại bỏ ảnh hưởng của index.css lên body khi ở trang login */
+body.login-page {
+  display: block !important;
+  place-items: unset !important;
+  justify-content: unset !important;
+  align-items: unset !important;
+  min-height: 100vh;
+  background-color: #f5f7fa; /* Màu nền cho trang login */
+  margin: 0;
+  padding: 0;
 }

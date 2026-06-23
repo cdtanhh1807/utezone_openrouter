@@ -144,12 +144,13 @@ const EditProfileModal = ({ user, onClose }: ModalProps) => {
             onChange={(e) => setDepartment(e.target.value)}
           >
             <option value="">Chọn khoa/phòng ban</option>
-            <option value="CHÍNH TRỊ LUẬT">CHÍNH TRỊ LUẬT</option>
+            <option value="CHÍNH TRỊ VÀ LUẬT">CHÍNH TRỊ VÀ LUẬT</option>
             <option value="CƠ KHÍ CHẾ TẠO MÁY">CƠ KHÍ CHẾ TẠO MÁY</option>
-            <option value="CƠ KHÍ ĐỘNG LỰC">CƠ KHÍ ĐỘNG LỰC</option>
             <option value="CÔNG NGHỆ HÓA HỌC VÀ THỰC PHẨM">CÔNG NGHỆ HÓA HỌC VÀ THỰC PHẨM</option>
             <option value="CÔNG NGHỆ THÔNG TIN">CÔNG NGHỆ THÔNG TIN</option>
+            <option value="ĐÀO TẠO TIÊN TIẾN">ĐÀO TẠO TIÊN TIẾN</option>
             <option value="ĐIỆN - ĐIỆN TỬ">ĐIỆN - ĐIỆN TỬ</option>
+            <option value="GIAO THÔNG VÀ NĂNG LƯỢNG">GIAO THÔNG VÀ NĂNG LƯỢNG</option>
             <option value="IN VÀ TRUYỀN THÔNG">IN VÀ TRUYỀN THÔNG</option>
             <option value="KHOA HỌC ỨNG DỤNG">KHOA HỌC ỨNG DỤNG</option>
             <option value="KINH TẾ">KINH TẾ</option>
@@ -179,8 +180,8 @@ const EditProfileModal = ({ user, onClose }: ModalProps) => {
 
         {/* Buttons */}
         <div className="modal-actions">
-          <button onClick={onClose} className="btn-cancel">Hủy</button>
-          <button onClick={handleSave} className="btn-save">Lưu</button>
+          <button onClick={onClose} className="btn-cancel-edit">Hủy</button>
+          <button onClick={handleSave} className="btn-save-edit">Lưu</button>
         </div>
       </div>
     </div>

@@ -651,6 +651,12 @@ export default function ReplyComment({
           contentParentId={postId}
           violatorEmail={reportReply.commentBy}
           path={reportReply.path}
+          onSuccess={() => {
+            if (reportReply) {
+              setReplies((prev) => prev.filter((r) => r.commentId !== reportReply.commentId));
+              if (onReplyDeleted) onReplyDeleted();
+            }
+          }}
         />
       )}
 

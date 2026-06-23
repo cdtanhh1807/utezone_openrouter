@@ -20,6 +20,7 @@ import feeeLogo from "../../../../assets/avt_department/feee.png";
 import feetLogo from "../../../../assets/avt_department/feet.jpg";
 import fflLogo from "../../../../assets/avt_department/ffl.png";
 import fgamLogo from "../../../../assets/avt_department/fgam.jpg";
+import fgtfdLogo from "../../../../assets/avt_department/fgtfd.jpg";
 import fitLogo from "../../../../assets/avt_department/fit.png";
 import fmeLogo from "../../../../assets/avt_department/fme.jpg";
 import fpiLogo from "../../../../assets/avt_department/fpi.png";
@@ -27,20 +28,70 @@ import iteLogo from "../../../../assets/avt_department/ite.jpg";
 import defaultLogo from "../../../../assets/logo.png";
 
 const logoMap: Record<string, string> = {
-  "CƠ KHÍ CHẾ TẠO MÁY": fmeLogo,
-  "CÔNG NGHỆ THÔNG TIN": fitLogo,
-  "CHÍNH TRỊ LUẬT": feLogo,
-  "CHÍNH TRỊ VÀ LUẬT": feLogo,
-  "ĐIỆN - ĐIỆN TỬ": feeeLogo,
-  "CÔNG NGHỆ HÓA HỌC VÀ THỰC PHẨM": fcftLogo,
-  "IN VÀ TRUYỀN THÔNG": fpiLogo,
+  // fae: Khoa Đào tạo Tiên tiến
+  "ĐÀO TẠO TIÊN TIẾN": faeLogo,
+  "KHOA ĐÀO TẠO TIÊN TIẾN": faeLogo,
+
+  // fas: Khoa Khoa học Ứng dụng
   "KHOA HỌC ỨNG DỤNG": fasLogo,
-  "KINH TẾ": feetLogo,
-  "NGOẠI NGỮ": fflLogo,
-  "THỜI TRANG VÀ DU LỊCH": fgamLogo,
-  "VIỆN SƯ PHẠM KỸ THUẬT": iteLogo,
+  "KHOA KHOA HỌC ỨNG DỤNG": fasLogo,
+
+  // fce: Khoa Xây dựng
   "XÂY DỰNG": fceLogo,
-  "CƠ KHÍ ĐỘNG LỰC": faeLogo,
+  "KHOA XÂY DỰNG": fceLogo,
+
+  // fcft: Khoa Công nghệ Hóa học và Thực phẩm
+  "CÔNG NGHỆ HÓA HỌC VÀ THỰC PHẨM": fcftLogo,
+  "KHOA CÔNG NGHỆ HÓA HỌC VÀ THỰC PHẨM": fcftLogo,
+
+  // fe: Khoa Kinh tế
+  "KINH TẾ": feLogo,
+  "KHOA KINH TẾ": feLogo,
+
+  // feee: Khoa Điện - Điện tử
+  "ĐIỆN - ĐIỆN TỬ": feeeLogo,
+  "KHOA ĐIỆN - ĐIỆN TỬ": feeeLogo,
+  "ĐIỆN ĐIỆN TỬ": feeeLogo,
+  "KHOA ĐIỆN ĐIỆN TỬ": feeeLogo,
+
+  // feet: Khoa Giao thông và Năng lượng
+  "GIAO THÔNG VÀ NĂNG LƯỢNG": feetLogo,
+  "KHOA GIAO THÔNG VÀ NĂNG LƯỢNG": feetLogo,
+  "CƠ KHÍ ĐỘNG LỰC": feetLogo,
+  "KHOA CƠ KHÍ ĐỘNG LỰC": feetLogo,
+
+  // ffl: Khoa Ngoại ngữ
+  "NGOẠI NGỮ": fflLogo,
+  "KHOA NGOẠI NGỮ": fflLogo,
+
+  // fgam: Khoa In và Truyền thông
+  "IN VÀ TRUYỀN THÔNG": fgamLogo,
+  "KHOA IN VÀ TRUYỀN THÔNG": fgamLogo,
+
+  // fgtfd: Khoa Thời trang và Du lịch
+  "THỜI TRANG VÀ DU LỊCH": fgtfdLogo,
+  "KHOA THỜI TRANG VÀ DU LỊCH": fgtfdLogo,
+  "CÔNG NGHỆ MAY VÀ THỜI TRANG": fgtfdLogo,
+  "KHOA CÔNG NGHỆ MAY VÀ THỜI TRANG": fgtfdLogo,
+
+  // fit: Khoa Công nghệ Thông tin
+  "CÔNG NGHỆ THÔNG TIN": fitLogo,
+  "KHOA CÔNG NGHỆ THÔNG TIN": fitLogo,
+
+  // fme: Khoa Cơ khí Chế tạo máy
+  "CƠ KHÍ CHẾ TẠO MÁY": fmeLogo,
+  "KHOA CƠ KHÍ CHẾ TẠO MÁY": fmeLogo,
+
+  // fpi: Khoa Chính trị và Luật
+  "CHÍNH TRỊ LUẬT": fpiLogo,
+  "CHÍNH TRỊ VÀ LUẬT": fpiLogo,
+  "KHOA CHÍNH TRỊ LUẬT": fpiLogo,
+  "KHOA CHÍNH TRỊ VÀ LUẬT": fpiLogo,
+  "LÝ LUẬN CHÍNH TRỊ VÀ PHÁP LUẬT": fpiLogo,
+  "KHOA LÝ LUẬN CHÍNH TRỊ VÀ PHÁP LUẬT": fpiLogo,
+
+  // ite: Viện Sư phạm Kỹ thuật
+  "VIỆN SƯ PHẠM KỸ THUẬT": iteLogo,
 };
 
 const formatDate = (dateStr?: string) => {

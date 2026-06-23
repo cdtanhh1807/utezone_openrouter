@@ -1,7 +1,6 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent, useEffect } from 'react';
 import axiosInstance from '../../../../utils/AxiosInstance';
 import { Link, useNavigate } from 'react-router-dom';
-import logo_truong from "../../../../assets/logo_login.png";
 import logo from "../../../../assets/logo.png";
 import './ForgotPassword.css';
 
@@ -9,11 +8,7 @@ type ForgotPasswordForm = {
     email: string;
     otp: string;
     newPassword: string;
-}
-
-type OtpResponse = {
-    message: string;
-}
+};
 
 function ForgotPassword() {
     const [formData, setFormData] = useState<ForgotPasswordForm>({
@@ -21,11 +16,16 @@ function ForgotPassword() {
         otp: '',
         newPassword: ''
     });
-
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-
     const navigate = useNavigate();
+
+    useEffect(() => {
+        document.body.classList.add("login-page");
+        return () => {
+            document.body.classList.remove("login-page");
+        };
+    }, []);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -38,43 +38,32 @@ function ForgotPassword() {
         setError(null);
 
         try {
-            const response = await axiosInstance.post<OtpResponse>(
-                '/account/forgot-password',
-                {
-                    email: formData.email,
-                    otp: formData.otp,
-                    new_password: formData.newPassword
-                }
-            );
-
-            console.log(response.data.message);
+            // Gửi đúng payload với otp và newPassword rỗng (theo file cũ)
+            await axiosInstance.post('/account/forgot-password', {
+                email: formData.email,
+                otp: formData.otp,
+                new_password: formData.newPassword
+            });
+            // Sau khi gửi email thành công, chuyển sang trang nhập OTP
             navigate('/verify-forgot-password', { state: { email: formData.email } });
         } catch (err: any) {
-            if (err.response) {
-                setError(err.response.data?.detail || 'Không thể gửi yêu cầu, vui lòng thử lại');
-            } else {
-                setError('Không thể kết nối đến server. Vui lòng kiểm tra lại kết nối hoặc backend.');
-            }
+            setError(err.response?.data?.detail || 'Không thể gửi yêu cầu, vui lòng thử lại');
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="forgot-container">
-            <div className="forgot-left">
-                <img
-                    src={logo_truong}
-                    alt="Forgot Password Illustration"
-                    className="forgot-image"
-                />
-            </div>
-            <div className="forgot-right">
-                <img
-                    src={logo}
-                    alt="Forgot Password Logo"
-                    className="forgot-logo-image"
-                />
+        <div className="login-container">
+            <div className="login-card">
+                <div className="login-logo">
+                    <img src={logo} alt="Logo" className="logo-img" />
+                </div>
+
+                <div className="slogan" style={{ fontSize: '22px', marginBottom: '20px' }}>
+                    <span className="slogan-blue">Quên mật khẩu</span>
+                </div>
+
                 <form onSubmit={handleSubmit}>
                     <input
                         type="email"
@@ -84,15 +73,22 @@ function ForgotPassword() {
                         onChange={handleChange}
                         required
                     />
-                    <button type="submit" disabled={isLoading} className="login-btn">
+                    {/* Ẩn hai trường otp và newPassword nhưng vẫn giữ trong state */}
+                    <input type="hidden" name="otp" value={formData.otp} />
+                    <input type="hidden" name="newPassword" value={formData.newPassword} />
+                    <button type="submit" disabled={isLoading} className="signin-btn">
                         {isLoading ? 'Đang gửi...' : 'Gửi OTP'}
                     </button>
                     {error && <div className="error-message">{error}</div>}
-
-                    <div className="login-links">
-                        <p><Link to="/login">Quay lại đăng nhập</Link></p>
-                    </div>
                 </form>
+
+                <div className="create-account" style={{ marginTop: '10px' }}>
+                    <Link to="/login">Quay lại đăng nhập</Link>
+                </div>
+
+                <div className="terms">
+                    Copyright © 2026 utezone.site | Powered by utezone.site
+                </div>
             </div>
         </div>
     );

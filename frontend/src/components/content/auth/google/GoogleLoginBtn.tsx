@@ -23,6 +23,10 @@ interface GoogleJwtPayload {
 export const GoogleLoginBtn = () => {
   const navigate = useNavigate();
 
+  // Lấy redirect URL nếu có
+  const params = new URLSearchParams(window.location.search);
+  const redirectUrl = params.get("redirect");
+
   const handleSuccess = async (credentialResponse: any) => {
     try {
       // 1️⃣ Gửi google credential lên backend
@@ -34,7 +38,6 @@ export const GoogleLoginBtn = () => {
 
       // 2️⃣ Decode JWT từ BACKEND
       const decodedBackend = jwtDecode<BackendJwtPayload>(token);
-          console.log("decoded login toan test:", decodedBackend);
 
       // 🚫 BLOCK LOGIN
       if (decodedBackend.per === "000") {
@@ -42,7 +45,14 @@ export const GoogleLoginBtn = () => {
         return;
       }
 
-      // ✅ OK → lưu token
+      // 🔥 Nếu có redirect → quay về hệ thống gọi login (giống login thường)
+      if (redirectUrl) {
+        const separator = redirectUrl.includes("?") ? "&" : "?";
+        window.location.href = `${redirectUrl}${separator}token=${token}`;
+        return;
+      }
+
+      // ✅ Lưu token (chỉ khi login nội bộ, không có redirect)
       localStorage.setItem("token", token);
 
       // 3️⃣ Decode google token chỉ để lấy email
@@ -60,12 +70,15 @@ export const GoogleLoginBtn = () => {
         return;
       }
 
-      if (accountData.fullName?.trim()) {
-        navigate("/home", { state: { fromLogin: true } });
-      } else {
+      // Nếu chưa có fullName → chuyển đến complete-profile
+      if (!accountData.fullName?.trim()) {
         localStorage.setItem("account", JSON.stringify(accountData));
         navigate("/complete-profile");
+        return;
       }
+
+      // ✅ Đã có fullName → vào home
+      navigate("/home");
     } catch (err) {
       console.error("Google login failed:", err);
       ToastService.error("Đăng nhập Google thất bại");

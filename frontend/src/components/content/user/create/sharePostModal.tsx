@@ -15,6 +15,8 @@ import SecurityIcon from "@mui/icons-material/Security";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import DepartmentMultiSelect from "./departmentSelect";
 import { ToastService } from "../../../../services/ToastService";
+import FileService from "../../../../services/FileService";
+
 
 interface SharePostModalProps {
   isOpen: boolean;
@@ -47,6 +49,18 @@ const SharePostModal = ({
   );
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<File[]>([]);
+
+  const handleAttachmentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    if (!selected.length) return;
+    setAttachments((prev) => [...prev, ...selected]);
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
   const visibilityText = {
     public: "Công khai",
     follow: "Người theo dõi",
@@ -61,6 +75,7 @@ const SharePostModal = ({
   useEffect(() => {
     if (!postId) return;
 
+    setAttachments([]);
     postAPI
       .getById(postId)
       .then((data) => {
@@ -89,12 +104,21 @@ const SharePostModal = ({
 
     setLoading(true);
     try {
+      let fileIds: string[] = [];
+      if (attachments.length) {
+        const uploads = await Promise.all(
+          attachments.map(FileService.uploadPicture)
+        );
+        fileIds = uploads.map((u) => u.file_id);
+      }
+
       await postAPI.sharePost(postId, {
         title: title.trim(),
         content: content.trim(),
         visibility: visibility,
         status: "active",
         category: selectedDepartments,
+        thumbnails: fileIds.length > 0 ? fileIds : undefined,
       });
 
       ToastService.success("Chia sẻ bài viết thành công!");
@@ -156,11 +180,36 @@ const SharePostModal = ({
               {previews.length > 0 && (
                 <div className="share-slider">
                   {previews[currentIndex].endsWith(".mp4") ? (
-                    <video controls className="share-media">
-                      <source src={previews[currentIndex]} type="video/mp4" />
-                    </video>
+                    <>
+                      {/* Background Blur */}
+                      <video
+                        className="share-media-blur"
+                        src={previews[currentIndex]}
+                        muted
+                        playsInline
+                        autoPlay
+                        loop
+                      />
+                      {/* Main Media */}
+                      <video controls className="share-media">
+                        <source src={previews[currentIndex]} type="video/mp4" />
+                      </video>
+                    </>
                   ) : (
-                    <img src={previews[currentIndex]} className="share-media" />
+                    <>
+                      {/* Background Blur */}
+                      <img
+                        src={previews[currentIndex]}
+                        className="share-media-blur"
+                        alt=""
+                      />
+                      {/* Main Media */}
+                      <img
+                        src={previews[currentIndex]}
+                        className="share-media"
+                        alt=""
+                      />
+                    </>
                   )}
                   {currentIndex > 0 && (
                     <ChevronLeftOutlinedIcon
@@ -203,6 +252,35 @@ const SharePostModal = ({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
               />
+
+              {/* ATTACHMENT FILE */}
+              <div className="attachmentSection">
+                <label className="attachBtn">
+                  📎 Đính kèm tệp
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleAttachmentUpload}
+                  />
+                </label>
+
+                {attachments.length > 0 && (
+                  <div className="attachmentList">
+                    {attachments.map((file, idx) => (
+                      <div key={idx} className="attachmentItem">
+                        <span className="fileName">📄 {file.name}</span>
+                        <button
+                          type="button"
+                          className="removeAttachment"
+                          onClick={() => removeAttachment(idx)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               <div className="visibilitySelector" ref={menuRef}>
                 <span className="dots" onClick={() => setMenuOpen((prev) => !prev)}>

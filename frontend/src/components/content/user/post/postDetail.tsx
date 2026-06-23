@@ -1310,6 +1310,15 @@ const PostDetail: React.FC<DetailPostProps> = ({
       setCanRoleComment(result);
     };
     loadPermission();
+
+    const handleRelationChange = () => {
+      loadPermission();
+    };
+
+    window.addEventListener("relation-changed", handleRelationChange);
+    return () => {
+      window.removeEventListener("relation-changed", handleRelationChange);
+    };
   }, [activePost, currentUserEmail]);
 
   const activeModalIndex = getIndex(activePost._id);
@@ -2396,6 +2405,11 @@ const PostDetail: React.FC<DetailPostProps> = ({
           contentId={reportComment.commentId}
           contentParentId={activePost._id}
           violatorEmail={reportComment.commentBy}
+          onSuccess={() => {
+            if (reportComment) {
+              handleRemoveCommentLocal(reportComment.commentId);
+            }
+          }}
         />
       )}
       <ReportModal
@@ -2407,6 +2421,11 @@ const PostDetail: React.FC<DetailPostProps> = ({
         content={reportPost?.content || ""}
         contentId={reportPost?._id}
         contentParentId=""
+        onSuccess={() => {
+          if (reportPost) {
+            handleRemovePostLocal(reportPost._id);
+          }
+        }}
       />
 
       <EditPost

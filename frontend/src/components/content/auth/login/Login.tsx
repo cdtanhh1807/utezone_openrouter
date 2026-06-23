@@ -2,14 +2,12 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import axiosInstance from "../../../../utils/AxiosInstance";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLoginBtn } from "../google/GoogleLoginBtn";
-import logo_truong from "../../../../assets/logo_login.png";
 import logo from "../../../../assets/logo.png";
 import { jwtDecode } from "jwt-decode";
 import { ToastService } from "../../../../services/ToastService";
 import AccountService from "../../../../services/AccountService";
 
-import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
+import { useEffect } from "react";
 
 import "./Login.css";
 
@@ -35,7 +33,6 @@ function Login() {
 
   const navigate = useNavigate();
 
-  // ✅ Lấy redirect URL nếu có
   const params = new URLSearchParams(window.location.search);
   const redirectUrl = params.get("redirect");
 
@@ -74,29 +71,24 @@ function Login() {
       const decoded = jwtDecode<JwtPayload>(token);
       console.log("decoded login:", decoded);
 
-      // 🚫 Block login
       if (decoded.per === "000") {
         ToastService.error("Tài khoản của bạn đã bị khóa");
         return;
       }
 
-      // 🔥 Nếu có redirect → quay về hệ thống gọi login
       if (redirectUrl) {
         const separator = redirectUrl.includes("?") ? "&" : "?";
         window.location.href = `${redirectUrl}${separator}token=${token}`;
         return;
       }
 
-      // ✅ lưu token (chỉ khi login nội bộ)
       localStorage.setItem("token", token);
 
-      // 🟥 Admin
       if (decoded.role === "Administrator") {
         navigate("/admin");
         return;
       }
 
-      // 🟩 User
       let accountData;
       try {
         accountData = await AccountService.get_account_info(decoded.sub);
@@ -123,24 +115,38 @@ function Login() {
     }
   };
 
+  useEffect(() => {
+    // Thêm class vào body khi mount component
+    document.body.classList.add("login-page");
+    return () => {
+      // Xóa class khi unmount
+      document.body.classList.remove("login-page");
+    };
+  }, []);
+
   return (
     <div className="login-container">
-      <div className="login-left">
-        <img
-          src={logo_truong}
-          alt="Login Illustration"
-          className="login-image"
-        />
-      </div>
+      <div className="login-card">
+        {/* Logo */}
+        <div className="login-logo">
+          <img src={logo} alt="Logo" className="logo-img" />
+        </div>
 
-      <div className="login-right">
-        <img src={logo} alt="Logo" className="login-utezone-image" />
+        {/* Slogan - gộp một dòng */}
+        <div className="slogan">
+          <span className="slogan-blue">Diễn đàn sinh viên</span>
+          <span className="slogan-text"> Trường Đại học Công nghệ Kỹ thuật TP. HCM</span>
+        </div>
 
+        {/* Divider "Đăng nhập vào UTEZone" */}
+        <div className="divider">Đăng nhập vào UTEZone</div>
+
+        {/* Form */}
         <form onSubmit={handleSubmit}>
           <input
             type="text"
             name="username"
-            placeholder="Tên đăng nhập"
+            placeholder="Email"
             value={formData.username}
             onChange={handleChange}
             required
@@ -155,43 +161,42 @@ function Login() {
               onChange={handleChange}
               required
             />
-
             <span
               className="toggle-password"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? (
-                <VisibilityOffOutlinedIcon />
-              ) : (
-                <VisibilityOutlinedIcon />
-              )}
             </span>
           </div>
 
-          <button type="submit" disabled={isLoading} className="login-btn">
+          <div className="options">
+            <Link to="/forgot-password" className="forgot">
+              Quên mật khẩu ?
+            </Link>
+          </div>
+
+          <button type="submit" disabled={isLoading} className="signin-btn">
             {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
 
           {error && <div className="error-message">{error}</div>}
-
-          <div className="social-login">
-            <GoogleLoginBtn />
-          </div>
-
-          <div className="login-links">
-            <div className="forgot_password">
-              <p className="qmk">
-                <Link to="/forgot-password">Quên mật khẩu?</Link>
-              </p>
-            </div>
-
-            <div className="btn_signup">
-              <p>
-                Chưa có tài khoản? <Link to="/signup">Đăng ký</Link>
-              </p>
-            </div>
-          </div>
         </form>
+
+        <div className="create-account">
+          <Link to="/signup">Tạo tài khoản mới</Link>
+        </div>
+
+        {/* Social divider with "Hoặc tiếp tục với" */}
+        <div className="social-divider">
+          <span>Hoặc</span>
+        </div>
+
+        <div className="social-login">
+          <GoogleLoginBtn />
+        </div>
+
+        <div className="terms">
+          Copyright © 2026 utezone.site | Powered by utezone.site
+        </div>
       </div>
     </div>
   );

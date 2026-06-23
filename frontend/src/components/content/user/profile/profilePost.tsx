@@ -146,9 +146,9 @@ const ListPost: React.FC<ProfilePostProps> = ({
 
   const token = localStorage.getItem("token");
   let currentUserEmail: string | null = email || null;
-  let currentUserRole: string | null | null;
-  let emailCheckUser: string | null | null;
-  let roleCheckUser: string | null | null;
+  let currentUserRole: string | null = null;
+  let emailCheckUser: string | null = null;
+  let roleCheckUser: string | null = null;
 
   if (!currentUserEmail && token) {
     try {
@@ -303,7 +303,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
   }, [posts]);
 
   useEffect(() => {
-    if (!posts.length || !currentUserEmail || initializedReactMap) return;
+    if (!posts.length || !emailCheckUser || initializedReactMap) return;
 
     const initialMap: Record<
       string,
@@ -317,7 +317,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
     posts.forEach((post) => {
       const entry = post.react
         ? Object.entries(post.react).find(([_, users]) =>
-            (users as string[]).includes(currentUserEmail!),
+            (users as string[]).includes(emailCheckUser!),
           )
         : null;
 
@@ -326,7 +326,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
       post.comments?.forEach((cmt) => {
         const cmtEntry = cmt.reacts
           ? Object.entries(cmt.reacts).find(([_, users]) =>
-              (users as string[]).includes(currentUserEmail!),
+              (users as string[]).includes(emailCheckUser!),
             )
           : null;
 
@@ -339,7 +339,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
     setUserReactMap(initialMap);
     setUserCommentReactMap(initialCommentMap);
     setInitializedReactMap(true);
-  }, [posts, currentUserEmail, initializedReactMap]);
+  }, [posts, emailCheckUser, initializedReactMap]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -367,7 +367,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
     const fetchUsers = async () => {
       try {
         const relation = await AccountService.get_account_relation(
-          currentUserEmail!,
+          emailCheckUser!,
         );
         const emails = relation.followed || [];
 
@@ -387,8 +387,8 @@ const ListPost: React.FC<ProfilePostProps> = ({
       }
     };
 
-    if (currentUserEmail) fetchUsers();
-  }, [currentUserEmail]);
+    if (emailCheckUser) fetchUsers();
+  }, [emailCheckUser]);
 
   const handleReact = async (
     postId: string,
@@ -400,9 +400,9 @@ const ListPost: React.FC<ProfilePostProps> = ({
       setPosts((prev) =>
         prev.map((p) => (p._id === postId ? { ...p, react: updatedReact } : p)),
       );
-      if (currentUserEmail) {
+      if (emailCheckUser) {
         const reactedEntry = Object.entries(updatedReact).find(([_, users]) =>
-          (users as string[]).includes(currentUserEmail!),
+          (users as string[]).includes(emailCheckUser!),
         );
         setUserReactMap((prev) => ({
           ...prev,
@@ -437,9 +437,9 @@ const ListPost: React.FC<ProfilePostProps> = ({
           return { ...post, comments: updatedComments };
         }),
       );
-      const entry = currentUserEmail
+      const entry = emailCheckUser
         ? Object.entries(updatedReact).find(([_, users]) =>
-            (users as string[]).includes(currentUserEmail!),
+            (users as string[]).includes(emailCheckUser!),
           )
         : null;
       setUserCommentReactMap((prev) => ({
@@ -952,7 +952,18 @@ const ListPost: React.FC<ProfilePostProps> = ({
     if (posts.length > 0) {
       loadPermissions();
     }
-  }, [posts, currentUserEmail]);
+
+    const handleRelationChange = () => {
+      if (posts.length > 0) {
+        loadPermissions();
+      }
+    };
+
+    window.addEventListener("relation-changed", handleRelationChange);
+    return () => {
+      window.removeEventListener("relation-changed", handleRelationChange);
+    };
+  }, [posts, emailCheckUser]);
 
   return (
     <div className="profilePost">
@@ -1007,12 +1018,12 @@ const ListPost: React.FC<ProfilePostProps> = ({
                 </div>
 
                 <div className="follow-check">
-                  {post.createdBy !== currentUserEmail &&
+                  {post.createdBy !== emailCheckUser &&
                     !userInfoMap[post.createdBy]?.followers?.includes(
-                      currentUserEmail || "",
+                      emailCheckUser || "",
                     ) && (
                       <FollowButton
-                        ownerEmail={currentUserEmail!}
+                        ownerEmail={emailCheckUser!}
                         clientEmail={post.createdBy}
                         onFollowSuccess={() => {
                           setUserInfoMap((prev) => ({
@@ -1021,7 +1032,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
                               ...prev[post.createdBy],
                               followers: [
                                 ...(prev[post.createdBy]?.followers ?? []),
-                                currentUserEmail!,
+                                emailCheckUser!,
                               ],
                             },
                           }));
@@ -1103,7 +1114,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
                             </div>
                           )}
                           {roleCheckUser === "Moderator" &&
-                            currentUserEmail === post.createdBy && (
+                            emailCheckUser === post.createdBy && (
                               <div
                                 className="menuItem delete"
                                 onClick={() => {
@@ -1152,7 +1163,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
                           )}
 
                           {roleCheckUser === "Moderator" &&
-                            currentUserEmail === post.createdBy && (
+                            emailCheckUser === post.createdBy && (
                               <div
                                 className="menuItem delete"
                                 onClick={() => {
@@ -1875,6 +1886,11 @@ const ListPost: React.FC<ProfilePostProps> = ({
           content={reportPost?.content || ""}
           contentId={reportPost?._id}
           contentParentId=""
+          onSuccess={() => {
+            if (reportPost) {
+              setPosts((prev) => prev.filter((p) => p._id !== reportPost._id));
+            }
+          }}
         />
         {selectedPost && (
           <ApproveModal
@@ -1883,7 +1899,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
             policy_element="bài đăng"
             element="post"
             elementId={selectedPost._id}
-            currentUserEmail={currentUserEmail ?? ""}
+            currentUserEmail={emailCheckUser ?? ""}
             post={selectedPost} // <- truyền bài viết vào modal
             onRemoved={() => handleRemovePostLocal(selectedPost._id)}
           />
@@ -1920,7 +1936,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
         {openSaveModal && selectedPostId && (
           <SaveToCollectionModal
             postId={selectedPostId}
-            email={currentUserEmail!}
+            email={emailCheckUser!}
             onClose={() => {
               setOpenSaveModal(false);
               setSelectedPostId(null);

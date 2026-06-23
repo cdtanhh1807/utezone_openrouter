@@ -32,6 +32,9 @@ import ProfileDetail from "./profileDetail";
 import StoryHighlightList from "./StoryHighlightList";
 import CreatePost from "../create/createPost";
 import { ToastService } from "../../../../services/ToastService";
+import AccountService from "../../../../services/AccountService";
+import type { UserInfo } from "../../../../types/Account";
+
 
 function Profile() {
   const { email } = useParams<{ email: string }>();
@@ -43,11 +46,13 @@ function Profile() {
   const [openCreatePost, setOpenCreatePost] = useState<boolean>(false);
   const [step, setStep] = useState<0 | 1 | 2>(0);
   const [hasHighlights, setHasHighlights] = useState(true);
+  const [profileUser, setProfileUser] = useState<UserInfo | null>(null);
 
   const boxRef = useRef<HTMLDivElement>(null);
 
   const token = localStorage.getItem("token");
   let currentUserEmail: string | null = null;
+  let currentUserRole: string | null = null;
 
   if (!currentUserEmail && token) {
     try {
@@ -59,10 +64,28 @@ function Profile() {
       }
       const decoded: JwtPayload = jwtDecode<JwtPayload>(token);
       currentUserEmail = decoded.sub;
+      currentUserRole = decoded.role;
     } catch (err) {
       console.error("❌ Token không hợp lệ:", err);
     }
   }
+
+  const isOwnProfile = !email || email === currentUserEmail;
+  const targetEmail = email || currentUserEmail || "";
+
+  useEffect(() => {
+    if (!targetEmail) return;
+    AccountService.get_account_info(targetEmail)
+      .then((res) => {
+        setProfileUser(res || null);
+      })
+      .catch((err) => {
+        console.error("❌ Lỗi lấy thông tin profile:", err);
+      });
+  }, [targetEmail]);
+
+  const isMOR = profileUser?.role === "Moderator";
+  const showCatalogTab = isMOR;
 
   const { list, loading, refetch } = useConversations();
 
@@ -279,13 +302,15 @@ function Profile() {
                 <span>Đã lưu</span>
               </button>
 
-              <button
-                className={activeTab === "catalog" ? "active" : ""}
-                onClick={() => setActiveTab("catalog")}
-              >
-                <EventIcon />
-                <span>Sự kiện</span>
-              </button>
+              {showCatalogTab && (
+                <button
+                  className={activeTab === "catalog" ? "active" : ""}
+                  onClick={() => setActiveTab("catalog")}
+                >
+                  <EventIcon />
+                  <span>Sự kiện</span>
+                </button>
+              )}
             </div>
 
             {/* Tầng 4: Nội dung Feed hiển thị dựa trên Tab */}
@@ -294,7 +319,9 @@ function Profile() {
               {activeTab === "album" && <ProfileAlbum email={email || currentUserEmail || undefined} />}
               {activeTab === "archived" && <ProfileArchived />}
               {activeTab === "saved" && <ProfileSaved email={email || currentUserEmail || undefined} />}
-              {activeTab === "catalog" && <ProfileCatalog />}
+              {activeTab === "catalog" && showCatalogTab && (
+                <ProfileCatalog email={targetEmail || undefined} isOwnProfile={isOwnProfile} />
+              )}
             </div>
           </div>
         </div>

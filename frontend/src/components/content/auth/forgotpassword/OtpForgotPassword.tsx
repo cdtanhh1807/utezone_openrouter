@@ -1,10 +1,9 @@
-import { useLocation, useNavigate, Navigate } from "react-router-dom";
-import { useState, type FormEvent, type ChangeEvent } from "react";
+import { Link, useLocation, useNavigate, Navigate } from "react-router-dom";
+import { useState, type FormEvent, type ChangeEvent, useEffect } from "react";
 import { AxiosError } from "axios";
 import axiosInstance from "../../../../utils/AxiosInstance";
 import { isTokenExpired } from '../../../../utils/Auth';
-import otpImage from "../../../../assets/logo_login.png"; // ảnh bên trái
-import logo from "../../../../assets/logo.png"; // logo trên form
+import logo from "../../../../assets/logo.png";
 import './OtpForgotPassword.css';
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -19,13 +18,19 @@ function validatePassword(password: string): string | null {
 function OtpForgotPassword() {
     const location = useLocation();
     const navigate = useNavigate();
-
     const email = (location.state as { email: string })?.email;
     const [otp, setOtp] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        document.body.classList.add("login-page");
+        return () => {
+            document.body.classList.remove("login-page");
+        };
+    }, []);
 
     const token = localStorage.getItem('token');
     if (token && !isTokenExpired(token)) {
@@ -57,32 +62,34 @@ function OtpForgotPassword() {
         }
 
         try {
-            const response = await axiosInstance.post<{ message: string }>(
-                "/account/change-password/",
-                { email, otp, new_password: password }
-            );
-
-            console.log(response.data.message);
+            await axiosInstance.post("/account/change-password/", {
+                email,
+                otp,
+                new_password: password
+            });
             navigate("/login");
-
         } catch (err) {
             const error = err as AxiosError<{ message: string }>;
-            const msg = error.response?.data?.message || "OTP không đúng hoặc đã hết hạn.";
-            setError(msg);
+            setError(error.response?.data?.message || "OTP không đúng hoặc đã hết hạn.");
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="otp-container">
-            <div className="otp-left">
-                <img src={otpImage} alt="OTP Illustration" className="otp-image" />
-            </div>
-            <div className="otp-right">
-                <img src={logo} alt="Logo" className="otp-logo" />
-                <h2>Xác minh OTP & Đặt lại mật khẩu</h2>
-                <p>Chúng tôi đã gửi mã OTP tới email: <b>{email}</b></p>
+        <div className="login-container">
+            <div className="login-card">
+                <div className="login-logo">
+                    <img src={logo} alt="Logo" className="logo-img" />
+                </div>
+
+                <div className="slogan" style={{ fontSize: '22px', marginBottom: '10px' }}>
+                    <span className="slogan-blue">Xác minh OTP</span>
+                </div>
+                <p style={{ textAlign: 'center', color: '#555', marginBottom: '20px', fontSize: '14px' }}>
+                    Chúng tôi đã gửi mã OTP tới email: <b>{email}</b>
+                </p>
+
                 <form onSubmit={handleSubmit}>
                     <input
                         type="text"
@@ -107,14 +114,19 @@ function OtpForgotPassword() {
                         onChange={handleChangePassword}
                         required
                     />
-                    <button type="submit" disabled={isLoading} className="otp-btn">
+                    <button type="submit" disabled={isLoading} className="signin-btn">
                         {isLoading ? "Đang xác minh..." : "Đổi mật khẩu"}
                     </button>
                     {error && <div className="error-message">{error}</div>}
-                    <div className="otp-links">
-                        <p>Quay lại <b><a href="/login">đăng nhập</a></b></p>
-                    </div>
                 </form>
+
+                <div className="create-account" style={{ marginTop: '10px' }}>
+                    <Link to="/login">Quay lại đăng nhập</Link>
+                </div>
+
+                <div className="terms">
+                    Copyright © 2026 utezone.site | Powered by utezone.site
+                </div>
             </div>
         </div>
     );

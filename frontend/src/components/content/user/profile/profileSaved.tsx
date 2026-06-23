@@ -16,6 +16,9 @@ interface Post {
   image: string;
   createdAt: string;
   isVideo?: boolean;
+  title?: string;
+  content?: string;
+  hasMedia?: boolean;
 }
 
 interface Collection {
@@ -130,22 +133,29 @@ function ProfileSaved({ email }: { email?: string }) {
 
                 const firstThumbnail = post?.thumbnails?.[0] || "";
                 const isVideo = /\.(mp4|mov|avi|webm)$/i.test(firstThumbnail);
+                const hasMedia = !!(post?.thumbnails_url?.[0] || post?.image);
 
                 return {
                   _id: postId,
                   image:
                     post?.thumbnails_url?.[0] ||
                     post?.image ||
-                    "https://via.placeholder.com/300",
+                    "",
                   createdAt: post?.createdAt || new Date().toISOString(),
                   isVideo,
+                  title: post?.title || "",
+                  content: post?.content || "",
+                  hasMedia,
                 };
               } catch {
                 return {
                   _id: postId,
-                  image: "https://via.placeholder.com/300",
+                  image: "",
                   createdAt: new Date().toISOString(),
                   isVideo: false,
+                  title: "Bài viết không khả dụng",
+                  content: "Không thể tải nội dung bài viết này.",
+                  hasMedia: false,
                 };
               }
             }),
@@ -297,7 +307,7 @@ function ProfileSaved({ email }: { email?: string }) {
   };
 
   if (loading) return <div>Đang tải bộ sưu tập...</div>;
-  if (collections.length === 0) return <div>Bạn chưa có bộ sưu tập nào 📌</div>;
+  if (collections.length === 0) return <div>Chưa có bộ sưu tập nào 📌</div>;
 
   return (
     <div className="saved-container">
@@ -377,8 +387,13 @@ function ProfileSaved({ email }: { email?: string }) {
 
                 {post.isVideo ? (
                   <video src={post.image} muted playsInline autoPlay loop />
-                ) : (
+                ) : post.hasMedia ? (
                   <img src={post.image} alt="saved" />
+                ) : (
+                  <div className="no-media-post">
+                    <h4 className="no-media-title">{post.title}</h4>
+                    <p className="no-media-content">{post.content}</p>
+                  </div>
                 )}
 
                 <div className="overlay">

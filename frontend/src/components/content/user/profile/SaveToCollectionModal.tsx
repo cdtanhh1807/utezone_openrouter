@@ -19,6 +19,9 @@ interface PostPreview {
   _id: string;
   image: string;
   createdAt: string;
+  hasMedia?: boolean;
+  title?: string;
+  content?: string;
 }
 
 interface CollectionUI {
@@ -55,20 +58,28 @@ function SaveToCollectionModal({ postId, email, onClose }: Props) {
                 const resPost = await postAPI.getById(pId);
                 const post = resPost?.post;
 
+                const hasMedia = !!(post?.thumbnails_url?.[0] || post?.image);
+
                 return {
                   _id: pId,
                   image:
                     post?.thumbnails_url?.[0] ||
                     post?.image ||
-                    "https://via.placeholder.com/150",
+                    "",
                   createdAt:
                     post?.createdAt || new Date().toISOString(),
+                  hasMedia,
+                  title: post?.title || "",
+                  content: post?.content || "",
                 };
               } catch {
                 return {
                   _id: pId,
-                  image: "https://via.placeholder.com/150",
+                  image: "",
                   createdAt: new Date().toISOString(),
+                  hasMedia: false,
+                  title: "",
+                  content: "",
                 };
               }
             })
@@ -123,7 +134,7 @@ function SaveToCollectionModal({ postId, email, onClose }: Props) {
         collection_name: newName,
         post_id: postId,
       });
-
+      ToastService.success("Taọ bộ sưu tập và lưu bài viết thành công");
       setShowCreate(false);
       setNewName("");
 
@@ -165,7 +176,22 @@ function SaveToCollectionModal({ postId, email, onClose }: Props) {
                 <div className="save-modal-grid">
                   {col.posts.map((post) => (
                     <div key={post._id} className="save-modal-item">
-                      <img src={post.image} alt="saved" />
+                      {post.hasMedia ? (
+                        <img src={post.image} alt="saved" />
+                      ) : (
+                        <div className="save-modal-no-media">
+                          <span className="no-media-quote">“</span>
+                          <div className="no-media-body">
+                            {post.title ? (
+                              <span className="no-media-text-title">{post.title}</span>
+                            ) : (
+                              <span className="no-media-text-content">
+                                {post.content || "Bài viết"}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="save-modal-overlay-text">
                         {new Date(post.createdAt).toLocaleDateString()}

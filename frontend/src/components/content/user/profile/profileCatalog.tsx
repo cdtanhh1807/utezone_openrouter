@@ -22,7 +22,12 @@ interface CatalogView extends Catalog {
   content: string;
 }
 
-function ProfileCatalog() {
+interface ProfileCatalogProps {
+  email?: string;
+  isOwnProfile?: boolean;
+}
+
+function ProfileCatalog({ email, isOwnProfile = false }: ProfileCatalogProps) {
   const [catalogs, setCatalogs] = useState<CatalogView[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -80,13 +85,19 @@ function ProfileCatalog() {
 
   useEffect(() => {
     fetchMyCatalog();
-  }, []);
+  }, [email]);
 
   const fetchMyCatalog = async () => {
     try {
-      const res = await catalogService.getMyPostCatalog();
-
-      const catalogList = res?.post_catalog_list || [];
+      let catalogList: Catalog[] = [];
+      if (isOwnProfile) {
+        const res = await catalogService.getMyPostCatalog();
+        catalogList = res?.post_catalog_list || [];
+      } else {
+        const res = await catalogService.getPostCatalog();
+        const catalogListAll = res?.post_catalog_list || [];
+        catalogList = catalogListAll.filter((item: Catalog) => item.email === email);
+      }
 
       const mappedData = await Promise.all(
         catalogList.map(async (item: Catalog) => {
@@ -131,9 +142,9 @@ function ProfileCatalog() {
   return (
     <div className="profile-catalog-container">
       <div className="catalog-header">
-        <h2>Sự kiện của bạn</h2>
+        <h2>{isOwnProfile ? "Sự kiện của bạn" : "Sự kiện nổi bật"}</h2>
 
-        <p>Quản lý tất cả sự kiện đã ghim</p>
+        <p>{isOwnProfile ? "Quản lý tất cả sự kiện đã ghim" : "Danh sách các sự kiện nổi bật"}</p>
       </div>
 
       {catalogs.length === 0 ? (
@@ -147,34 +158,36 @@ function ProfileCatalog() {
               onClick={() => handleOpenPost(item.post_id)}
             >
               {/* TOP ACTION */}
-              <div className="catalog-action">
-                <button
-                  className="catalog-action-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setOpenMenuId(
-                      openMenuId === item._id ? null : item._id || null,
-                    );
-                  }}
-                >
-                  <p className="catalog-action-text">...</p>
-                </button>
+              {isOwnProfile && (
+                <div className="catalog-action">
+                  <button
+                    className="catalog-action-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(
+                        openMenuId === item._id ? null : item._id || null,
+                      );
+                    }}
+                  >
+                    <p className="catalog-action-text">...</p>
+                  </button>
 
-                {openMenuId === item._id && (
-                  <div className="catalog-dropdown">
-                    <div
-                      className="catalog-dropdown-item"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenUpdate(item.post_id);
-                      }}
-                    >
-                      <Pencil size={15} />
-                      Chỉnh sửa
+                  {openMenuId === item._id && (
+                    <div className="catalog-dropdown">
+                      <div
+                        className="catalog-dropdown-item"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenUpdate(item.post_id);
+                        }}
+                      >
+                        <Pencil size={15} />
+                        Chỉnh sửa
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
               {/* IMAGE */}
               <div className="catalog-image-wrapper">
                 <img

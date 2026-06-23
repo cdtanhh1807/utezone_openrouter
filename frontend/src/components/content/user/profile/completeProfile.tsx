@@ -5,6 +5,9 @@ import type { UserInfo, Account } from "../../../../types/Account";
 import avt_default from "../../../../assets/avt_default.png";
 import "./completeProfile.css";
 import FileService from "../../../../services/FileService";
+import { FollowButton } from "../relationship/follow";
+import { UnFollowButton } from "../relationship/unfollow";
+import { jwtDecode } from "jwt-decode";
 
 interface CompleteProfileProps {
   onDone?: () => void;
@@ -20,6 +23,25 @@ const CompleteProfile = ({ onDone }: CompleteProfileProps) => {
 
   const [showSuggestModal, setShowSuggestModal] = useState(false);
   const [suggestUsers, setSuggestUsers] = useState<any[]>([]);
+
+
+  const token = localStorage.getItem("token");
+    let currentUserEmail: string | null = null;
+  
+    if (!currentUserEmail && token) {
+      try {
+        interface JwtPayload {
+          sub: string;
+          role: string;
+          exp: number;
+          per: string;
+        }
+        const decoded: JwtPayload = jwtDecode<JwtPayload>(token);
+        currentUserEmail = decoded.sub;
+      } catch (err) {
+        console.error("❌ Token không hợp lệ:", err);
+      }
+    }
 
   useEffect(() => {
     const accData = localStorage.getItem("account");
@@ -50,23 +72,6 @@ const CompleteProfile = ({ onDone }: CompleteProfileProps) => {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFollow = async (email: string) => {
-    try {
-      await AccountService.follow({
-        owner: account?.email!,
-        client: email,
-      });
-
-      setSuggestUsers((prev) =>
-        prev.map((u) =>
-          u.email === email ? { ...u, followed: true } : u
-        )
-      );
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   const handleSubmit = async () => {
@@ -170,15 +175,18 @@ const CompleteProfile = ({ onDone }: CompleteProfileProps) => {
           value={formData.department || ""}
           onChange={handleChange}
         >
-         <option value="">-- Chọn phòng ban --</option>
-          <option value="CHÍNH TRỊ LUẬT">CHÍNH TRỊ LUẬT</option>
+          <option value="">-- Chọn phòng ban --</option>
+          <option value="CHÍNH TRỊ VÀ LUẬT">CHÍNH TRỊ VÀ LUẬT</option>
           <option value="CƠ KHÍ CHẾ TẠO MÁY">CƠ KHÍ CHẾ TẠO MÁY</option>
-          <option value="CƠ KHÍ ĐỘNG LỰC">CƠ KHÍ ĐỘNG LỰC</option>
           <option value="CÔNG NGHỆ HÓA HỌC VÀ THỰC PHẨM">
             CÔNG NGHỆ HÓA HỌC VÀ THỰC PHẨM
           </option>
           <option value="CÔNG NGHỆ THÔNG TIN">CÔNG NGHỆ THÔNG TIN</option>
+          <option value="ĐÀO TẠO TIÊN TIẾN">ĐÀO TẠO TIÊN TIẾN</option>
           <option value="ĐIỆN - ĐIỆN TỬ">ĐIỆN - ĐIỆN TỬ</option>
+          <option value="GIAO THÔNG VÀ NĂNG LƯỢNG">
+            GIAO THÔNG VÀ NĂNG LƯỢNG
+          </option>
           <option value="IN VÀ TRUYỀN THÔNG">IN VÀ TRUYỀN THÔNG</option>
           <option value="KHOA HỌC ỨNG DỤNG">KHOA HỌC ỨNG DỤNG</option>
           <option value="KINH TẾ">KINH TẾ</option>
@@ -214,12 +222,35 @@ const CompleteProfile = ({ onDone }: CompleteProfileProps) => {
                   <img src={user.avatar} alt="" />
                   <span>{user.fullName}</span>
 
-                  <button
-                    onClick={() => handleFollow(user.email)}
-                    disabled={user.followed}
-                  >
-                    {user.followed ? "Đã follow" : "Follow"}
-                  </button>
+                  {user.followed ? (
+                    <UnFollowButton
+                      ownerEmail={currentUserEmail!}
+                      clientEmail={user.email}
+                      onUnFollowSuccess={() => {
+                        setSuggestUsers((prev) =>
+                          prev.map((u) =>
+                            u.email === user.email
+                              ? { ...u, followed: false }
+                              : u,
+                          ),
+                        );
+                      }}
+                    />
+                  ) : (
+                    <FollowButton
+                      ownerEmail={currentUserEmail!}
+                      clientEmail={user.email}
+                      onFollowSuccess={() => {
+                        setSuggestUsers((prev) =>
+                          prev.map((u) =>
+                            u.email === user.email
+                              ? { ...u, followed: true }
+                              : u,
+                          ),
+                        );
+                      }}
+                    />
+                  )}
                 </div>
               ))}
             </div>
@@ -227,7 +258,11 @@ const CompleteProfile = ({ onDone }: CompleteProfileProps) => {
             <button
               onClick={() => {
                 setShowSuggestModal(false);
-                navigate("/home");
+                window.location.href = "/home";
+                // setTimeout(() => {
+                //   window.location.reload();
+                // }, 0);
+                // navigate("/home");
               }}
             >
               Bỏ qua
