@@ -65,7 +65,7 @@ class AccountServiceImpl(IAccountService):
         await send_email(
             f"UTEZone",
             register_user_req.email,
-            "[UTEZone]: Xác thực OTP để hoàn tất đăng ký tài khoản",
+            "UTEZone - Xác thực OTP để hoàn tất tạo tài khoản",
             f"Your OTP is: {otp}"
         )
 
@@ -152,7 +152,7 @@ class AccountServiceImpl(IAccountService):
         await send_email(
             f"UTEZone",
             forgot_password_req.email,
-            "[UTEZone]: Xác thực OTP để thay đổi mật khẩu",
+            "UTEZone - Xác thực OTP để thay đổi mật khẩu",
             f"Your OTP is: {otp}"
         )
 
