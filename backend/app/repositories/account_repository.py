@@ -193,7 +193,10 @@ class AccountRepository:
                 continue
 
             full_name = acc["userInfo"]["fullName"]
-            score = fuzz.token_sort_ratio(full_name.lower(), keySearch.lower())
+            score = max(
+                fuzz.partial_ratio(full_name.lower(), keySearch.lower()),
+                fuzz.token_set_ratio(full_name.lower(), keySearch.lower())
+            )
 
             if score >= 50:
                 results.append(acc)

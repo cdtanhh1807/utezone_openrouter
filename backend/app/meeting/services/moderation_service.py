@@ -285,6 +285,10 @@ async def moderate_file(
     room_id: str,
     message_id: Optional[str] = None
 ) -> dict:
+    channel = await channel_service.get_channel(channel_id)
+    if channel and channel.owner_email.strip().lower() == sender_email.strip().lower():
+        return {"approved": True, "reason": "Chủ kênh được miễn kiểm duyệt"}
+
     rules_obj = await channel_service.get_channel_rules(channel_id)
     if not rules_obj or not rules_obj.enabled:
         return {"approved": True, "reason": "Moderation disabled"}
@@ -333,6 +337,10 @@ async def moderate_text_message(
     sender_email: str,
     room_id: str
 ):
+    channel = await channel_service.get_channel(channel_id)
+    if channel and channel.owner_email.strip().lower() == sender_email.strip().lower():
+        return
+
     rules_obj = await channel_service.get_channel_rules(channel_id)
     if not rules_obj or not rules_obj.enabled:
         return

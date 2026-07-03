@@ -9,10 +9,12 @@ import ComplaintModal from "./complaintModal";
 import logoht from "../../../../assets/logo_he_thong.jpg";
 
 interface Announce {
-  _id: string;
+  _id?: string;
+  id?: string;
   senderEmail: string;
   type: string;
   contentAnnounce: string;
+  isRead: boolean;
   createdAt: string;
   contentId?: string; // commentId
   contentParentId?: string; // postId
@@ -27,14 +29,17 @@ interface NotificationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenPostDetail: (post: any, commentId?: string | null) => void;
+  notifications: Announce[];
+  setNotifications: React.Dispatch<React.SetStateAction<Announce[]>>;
 }
 
 const NotificationModal: React.FC<NotificationModalProps> = ({
   isOpen,
   onClose,
   onOpenPostDetail,
+  notifications,
+  setNotifications,
 }) => {
-  const [notifications, setNotifications] = useState<Announce[]>([]);
   const [senderInfoMap, setSenderInfoMap] = useState<
     Record<string, SenderInfo>
   >({});
@@ -75,7 +80,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
   // FETCH NOTIFICATIONS
   // =========================
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !currentUserEmail) return;
 
     setLoading(true);
 
@@ -109,7 +114,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
       setSenderInfoMap(infoMap);
       setLoading(false);
     });
-  }, [isOpen, currentUserEmail]);
+  }, [isOpen, currentUserEmail, setNotifications]);
 
   if (!isOpen) return null;
 
@@ -117,6 +122,24 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
   // CLICK NOTIFICATION
   // =========================
   const handleNotificationClick = async (item: Announce) => {
+    const announceId = item._id || item.id;
+    if (!announceId) return;
+
+    if (!item.isRead) {
+      // Cập nhật UI ngay lập tức (Optimistic Update)
+      setNotifications((prev) =>
+        prev.map((n) => ((n._id || n.id) === announceId ? { ...n, isRead: true } : n))
+      );
+      // Gọi API ở background
+      announceAPI.markAsRead(announceId)
+        .then((res) => {
+          console.log("✅ Đã đánh dấu đã đọc thành công trên server:", res);
+        })
+        .catch((err) => {
+          console.error("❌ Không thể đánh dấu đã đọc ở server:", err);
+        });
+    }
+
     // Complaint
     if (item.type === "complaint") {
       setComplaintContent(item.contentAnnounce);
@@ -173,8 +196,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
 
               return (
                 <div
-                  key={item._id}
-                  className="notificationItem"
+                  key={item._id || item.id}
+                  className={`notificationItem ${!item.isRead ? "unread" : ""}`}
                   onClick={() => handleNotificationClick(item)}
                 >
                   {sender?.avatar && (

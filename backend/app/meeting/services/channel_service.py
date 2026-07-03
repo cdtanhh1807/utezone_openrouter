@@ -10,10 +10,10 @@ class ChannelService:
     def __init__(self):
         self.db = db
         self.channels_col = db.channels
-        self.chatrooms_col = db.chat_rooms
+        self.chatrooms_col = db.rooms
         self.sessions_col = db.user_sessions
-        self.messages_col = db.messages
-        self.channel_ai_messages_col = db.channel_ai_messages
+        self.messages_col = db.chat_room_messages
+        self.channel_ai_messages_col = db.ai_room_messages
 
     # ==================== CHANNEL CRUD ====================
 
@@ -326,6 +326,9 @@ class ChannelService:
         chatroom = await self.get_chat_room(room_id)
         if not chatroom:
             return False
+
+        if chatroom.room_type == "ai":
+            raise ValueError("Không thể xóa phòng UTEZoneAI")
 
         channel = await self.get_channel(chatroom.channel_id)
         if not channel or channel.owner_email != owner_email:

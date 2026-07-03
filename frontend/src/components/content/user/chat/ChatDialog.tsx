@@ -12,11 +12,18 @@ type Props = {
   onClose: () => void;
   list: Conversation[];
   refetch: () => void;
+  initialSelectedEmail?: string | null;
 };
 
-const ChatDialog: React.FC<Props> = ({ onClose, list, refetch }) => {
+const ChatDialog: React.FC<Props> = ({ onClose, list, refetch, initialSelectedEmail }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(initialSelectedEmail || null);
+
+  React.useEffect(() => {
+    if (initialSelectedEmail) {
+      setSelected(initialSelectedEmail);
+    }
+  }, [initialSelectedEmail]);
 
   const handleSelect = async (email: string) => {
     setSelected(email);
@@ -27,7 +34,7 @@ const ChatDialog: React.FC<Props> = ({ onClose, list, refetch }) => {
   };
 
   return (
-    <div ref={dialogRef} className="chat-dialog">
+    <div ref={dialogRef} className={`chat-dialog ${selected ? "has-selected" : ""}`}>
       <ConversationList
         list={list}
         selected={selected}
@@ -35,7 +42,7 @@ const ChatDialog: React.FC<Props> = ({ onClose, list, refetch }) => {
       />
 
       {selected ? (
-        <MessagePanel otherEmail={selected} />
+        <MessagePanel otherEmail={selected} onBack={() => setSelected(null)} />
       ) : (
         <div className="empty-chat">
           <div className="empty-chat-logo">

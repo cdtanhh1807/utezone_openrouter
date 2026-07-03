@@ -9,8 +9,7 @@ import { jwtDecode } from "jwt-decode";
 import { useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 
-// ----- SERVICES -----
-import { announceAPI } from "./services/AnnounceService";
+
 
 // ----- AUTH -----
 import SignUp from "./components/content/auth/signup/SignUp";
@@ -61,7 +60,7 @@ const getAuthInfo = (): { role: Role } | null => {
 const RootRedirect = () => {
   const auth = getAuthInfo();
 
-  if (!auth) return <Navigate to="/login" replace />;
+  if (!auth) return <Navigate to="/welcome" replace />;
 
   if (auth.role === "Administrator") {
     return <Navigate to="/admin" replace />;
@@ -86,7 +85,7 @@ const GuestGuard = ({ children }: { children: JSX.Element }) => {
 const UserOnlyGuard = ({ children }: { children: JSX.Element }) => {
   const auth = getAuthInfo();
 
-  if (!auth) return <Navigate to="/login" replace />;
+  if (!auth) return <Navigate to="/welcome" replace />;
 
   if (auth.role === "Administrator") {
     return <Navigate to="/admin" replace />;
@@ -98,7 +97,7 @@ const UserOnlyGuard = ({ children }: { children: JSX.Element }) => {
 const AdminOnlyGuard = ({ children }: { children: JSX.Element }) => {
   const auth = getAuthInfo();
 
-  if (!auth) return <Navigate to="/login" replace />;
+  if (!auth) return <Navigate to="/welcome" replace />;
 
   if (auth.role !== "Administrator") {
     return <Navigate to="/home" replace />;
@@ -109,43 +108,7 @@ const AdminOnlyGuard = ({ children }: { children: JSX.Element }) => {
 
 /* ================== APP ================== */
 function App() {
-  const prevIdsRef = useRef<Set<string>>(new Set());
-  const isFirstLoadRef = useRef(true);
 
-  useEffect(() => {
-    const fetchAnnounce = async () => {
-      try {
-        const res = await announceAPI.getAllAnnounce();
-        const list = res?.announce_list || [];
-
-        const currentIds = new Set<string>(list.map((item: any) => item._id));
-
-        // 👉 LẦN ĐẦU: chỉ set state, KHÔNG toast
-        if (isFirstLoadRef.current) {
-          prevIdsRef.current = currentIds;
-          isFirstLoadRef.current = false;
-          return;
-        }
-
-        // 👉 TỪ LẦN SAU: mới toast
-        list.forEach((item: any) => {
-          if (!prevIdsRef.current.has(item._id)) {
-            ToastService.info(item.contentAnnounce);
-          }
-        });
-
-        prevIdsRef.current = currentIds;
-      } catch (err) {
-        console.error("announce error:", err);
-      }
-    };
-
-    fetchAnnounce(); // lần đầu
-
-    const interval = setInterval(fetchAnnounce, 100000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>

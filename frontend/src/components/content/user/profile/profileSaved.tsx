@@ -307,7 +307,7 @@ function ProfileSaved({ email }: { email?: string }) {
   };
 
   if (loading) return <div>Đang tải bộ sưu tập...</div>;
-  if (collections.length === 0) return <div>Chưa có bộ sưu tập nào 📌</div>;
+  if (collections.length === 0) return <div>Bạn chưa có bộ sưu tập nào 📌</div>;
 
   return (
     <div className="saved-container">

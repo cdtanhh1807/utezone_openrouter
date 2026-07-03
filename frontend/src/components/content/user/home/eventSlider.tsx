@@ -190,12 +190,23 @@ export default function PostCatalog({
         }
       }}
     >
-      {/* IMAGE */}
-      <img
-        src={event.image}
-        alt={event.title}
-        className="event-image"
-      />
+      {/* MEDIA */}
+      {/\.(mp4|mov|avi|webm|ogg)$/i.test(event.image.split("?")[0]) ? (
+        <video
+          src={event.image}
+          className="event-image"
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+      ) : (
+        <img
+          src={event.image}
+          alt={event.title}
+          className="event-image"
+        />
+      )}
 
       {/* OVERLAY */}
       <div className="event-overlay">

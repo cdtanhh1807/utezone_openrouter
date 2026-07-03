@@ -214,3 +214,12 @@ button {
   cursor: pointer;
   font-size: 14px;
 }
+
+/* Ẩn hoàn toàn cột gợi ý và feed bên phải trên tablet và mobile */
+@media screen and (max-width: 992px) {
+  .rightSide,
+  .right-feed {
+    display: none !important;
+  }
+}
+

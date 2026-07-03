@@ -28,14 +28,13 @@
 }
 
 .logoImage {
-  height: 100px; /* chỉnh lại phù hợp header 60px */
+  height: 80px; /* giới hạn chiều cao logo để vừa header 60px */
   width: auto;
 }
 
 /* Trung tâm - search */
 .header-center {
-  flex: 0.6;
-  flex: 1 1 auto; /* chiếm phần còn lại */
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -43,10 +42,9 @@
 
 /* Header bên phải */
 .header-right {
-  flex: 0.2;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 10px;
   flex: 0 0 auto; /* cố định kích thước */
 }
 
@@ -75,8 +73,10 @@
 
 .notification{
   position: relative;
-    cursor: pointer;
-  margin-top: 10px;
+  cursor: pointer;
+  margin-top: 0px; /* Căn giữa lại icon notification */
+  display: flex;
+  align-items: center;
 }
 
 .user-icon {
@@ -124,13 +124,14 @@
 .search-bar {
   display: flex;
   align-items: center;
-  width: 720px;
+  width: 100%;
+  max-width: 500px; /* Sử dụng max-width linh hoạt thay vì width cứng 720px */
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 20px;
-  padding: 5px 10px;
+  padding: 5px 12px;
   transition: all 0.2s ease;
-  margin-left: 200px;
+  margin-left: 20px;
 }
 
 .search-bar input {
@@ -258,7 +259,7 @@
   cursor: pointer;
   transition: 0.2s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  margin-right: 30px;
+  margin-right: 15px; /* Giảm margin-right xuống để cân đối */
 }
 
 .message-btn-header:hover {
@@ -285,7 +286,7 @@
   cursor: pointer;
   transition: 0.2s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  margin-right: 30px;
+  margin-right: 15px; /* Giảm margin-right xuống để cân đối */
   color: black;
 }
 
@@ -303,7 +304,7 @@
 .chat-badge-header {
   position: absolute;
   top: -4px;
-  right: 35px;
+  right: -4px; /* Căn chỉnh badge tin nhắn */
   min-width: 12px;
   height: 18px;
   padding: 0 5px;
@@ -321,7 +322,7 @@
   position: absolute;
   top: 65px;
   right: 20px;
-  z-index: 999;
+  z-index: 1005;
 }
 .message-btn-header {
   outline: none;
@@ -336,3 +337,75 @@
   border: none;
   box-shadow: none;
 }
+
+/* =========================================
+   MEDIA QUERIES FOR HEADER
+   ========================================= */
+
+@media screen and (max-width: 1024px) {
+  .search-bar {
+    max-width: 250px;
+  }
+  .message-btn-header, .meeting-btn-header {
+    margin-right: 10px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .headerSide {
+    padding: 0 10px;
+  }
+  .logoImage {
+    height: 60px;
+  }
+  /* Ẩn tên người dùng trên mobile để không chật chội */
+  .rightSide-postInfo div {
+    display: none;
+  }
+  .rightSide-postInfo {
+    gap: 0;
+  }
+  .search-bar {
+    max-width: 150px;
+    margin-left: 10px;
+    padding: 4px 8px;
+  }
+  .search-bar input {
+    font-size: 12px;
+    padding-left: 5px;
+  }
+  .message-btn-header, .meeting-btn-header {
+    margin-right: 5px;
+    width: 36px;
+    height: 36px;
+  }
+  .message-btn-header svg, .meeting-btn-header svg {
+    font-size: 20px;
+  }
+  .notification {
+    margin-top: 0;
+  }
+  .chat-fixed {
+    right: 5px;
+    left: 5px;
+    width: auto;
+  }
+}
+
+.notification-badge-header {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 12px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: red;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}

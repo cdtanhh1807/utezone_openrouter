@@ -12,6 +12,7 @@
 
 .middleSide {
   flex: 7;
+  transition: all 0.3s ease;
 }
 
 .middleSide.full-width {
@@ -21,4 +22,21 @@
 
 .rightSide {
   flex: 3;
+  transition: all 0.3s ease;
 }
+
+/* Ẩn cột tin gợi ý bên phải trên tablet và mobile */
+@media screen and (max-width: 992px) {
+  .rightSide,
+  .right-feed {
+    display: none !important;
+  }
+  .middleSide {
+    flex: 10;
+    width: 100%;
+  }
+  .Home {
+    gap: 0;
+  }
+}
+

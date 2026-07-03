@@ -15,6 +15,7 @@ type Props = {
   profileEmail: string;
   myEmail: string;
   initialTab?: number; // Prop mới để chọn tab mặc định
+  hideBlocked?: boolean;
 };
 
 type UserItem = {
@@ -29,6 +30,7 @@ const RelationshipModal: React.FC<Props> = ({
   profileEmail,
   myEmail,
   initialTab = 0,
+  hideBlocked = false,
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [loading, setLoading] = useState(false);
@@ -113,7 +115,7 @@ const RelationshipModal: React.FC<Props> = ({
 
   if (!isOpen) return null;
 
-  const tabs = myEmail === profileEmail
+  const tabs = (myEmail === profileEmail && !hideBlocked)
     ? ["Người theo dõi", "Đang theo dõi", "Chặn"]
     : ["Người theo dõi", "Đang theo dõi"];
 

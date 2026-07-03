@@ -105,7 +105,7 @@
 /* Thanh Tabs */
 .modern-profile-tabs {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   padding: 4px 16px;
   gap: 8px;
@@ -115,6 +115,8 @@
 .modern-profile-tabs button {
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex: 1;
   gap: 8px;
   background: transparent;
   border: none;
@@ -127,7 +129,7 @@
   transition: background-color 0.2s, color 0.2s;
   position: relative;
   white-space: nowrap;
-  margin-left: 30px;
+  margin-left: 0;
 }
 
 .modern-profile-tabs button:hover {
@@ -263,14 +265,33 @@
 
 /* Responsive cho màn hình nhỏ */
 @media screen and (max-width: 768px) {
+  .profile-layout-wrapper {
+    padding: 10px;
+  }
+  
+  .profile-body-grid {
+    grid-template-columns: 1fr; /* chuyển thành 1 cột */
+    gap: 16px;
+  }
+  
+  .profile-sidebar-left {
+    position: static; /* bỏ sticky trên mobile */
+  }
+
   .modern-compose-widget {
     flex-direction: column;
     align-items: flex-start;
+    padding: 16px;
+    gap: 15px;
   }
   
   .compose-action-row {
     width: 100%;
     justify-content: flex-end;
+  }
+  
+  .compose-prompt-area {
+    width: 100%;
   }
 }
 

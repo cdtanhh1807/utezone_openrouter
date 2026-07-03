@@ -1017,7 +1017,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
                   </div>
                 </div>
 
-                <div className="follow-check">
+                <div className="postHeaderRight">
                   {post.createdBy !== emailCheckUser &&
                     !userInfoMap[post.createdBy]?.followers?.includes(
                       emailCheckUser || "",
@@ -1039,17 +1039,17 @@ const ListPost: React.FC<ProfilePostProps> = ({
                         }}
                       />
                     )}
-                </div>
 
-                <button
-                  className="optionPost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePostMenu(post._id);
-                  }}
-                >
-                  <MoreHorizOutlinedIcon />
-                </button>
+                  <button
+                    className="optionPost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePostMenu(post._id);
+                    }}
+                  >
+                    <MoreHorizOutlinedIcon />
+                  </button>
+                </div>
 
                 <div
                   className="postMenu"
@@ -1162,8 +1162,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
                             </div>
                           )}
 
-                          {roleCheckUser === "Moderator" &&
-                            emailCheckUser === post.createdBy && (
+                          {roleCheckUser === "Moderator" && userInfoMap[post.createdBy]?.role !== "Moderator" && (
                               <div
                                 className="menuItem delete"
                                 onClick={() => {
@@ -1197,7 +1196,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
                 <span>{post.title}</span>
               </div>
 
-              <div className="postContent">
+              <div className={`postContent ${expandedPosts[post._id] ? "expanded" : ""}`}>
                 <p>
                   {expandedPosts[post._id]
                     ? post.content
@@ -1403,7 +1402,7 @@ const ListPost: React.FC<ProfilePostProps> = ({
                     <span>{originalPost.title}</span>
                   </div>
 
-                  <div className="postContent">
+                  <div className={`postContent ${expandedPosts[originalPost._id] ? "expanded" : ""}`}>
                     <p>
                       {expandedPosts[originalPost._id]
                         ? originalPost.content

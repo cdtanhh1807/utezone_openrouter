@@ -117,3 +117,29 @@
     transform: translateY(0px);
   }
 }
+
+/* =======================
+   RESPONSIVE LAYOUT
+======================= */
+
+@media screen and (max-width: 768px) {
+  .chat-dialog {
+    width: 100%;
+    height: 480px;
+    max-height: calc(100vh - 100px);
+    border-radius: 12px;
+  }
+
+  .chat-dialog .conv-list-container {
+    width: 100%;
+    border-right: none;
+  }
+
+  .chat-dialog.has-selected .conv-list-container {
+    display: none;
+  }
+
+  .chat-dialog:not(.has-selected) .empty-chat {
+    display: none;
+  }
+}

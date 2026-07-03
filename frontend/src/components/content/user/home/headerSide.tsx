@@ -3,6 +3,7 @@ import logo from "../../../../assets/logo.png";
 import meeting_logo from "../../../../assets/meeting_logo.png";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { announceAPI } from "../../../../services/AnnounceService";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import { jwtDecode } from "jwt-decode";
@@ -24,6 +25,33 @@ const HeaderSide = () => {
 
   // --- NOTIFICATION ---
   const [openNotification, setOpenNotification] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  const unreadNotificationCount = useMemo(() => {
+    return notifications.filter((item) => !item.isRead).length;
+  }, [notifications]);
+
+  useEffect(() => {
+    if (!currentUserEmail) return;
+
+    const fetchNotifications = async () => {
+      try {
+        const res = await announceAPI.getAllAnnounce();
+        const list = (res.announce_list || []).filter(
+          (item: any) => item.senderEmail !== currentUserEmail
+        );
+        setNotifications(list.reverse());
+      } catch (err) {
+        console.error("fetchNotifications error:", err);
+      }
+    };
+
+    fetchNotifications();
+
+    const interval = setInterval(fetchNotifications, 15000);
+
+    return () => clearInterval(interval);
+  }, [currentUserEmail]);
 
   // --- POST DETAIL (🔥 ĐƯA LÊN CHA) ---
   const [isPostDetailOpen, setIsPostDetailOpen] = useState(false);
@@ -191,8 +219,14 @@ const HeaderSide = () => {
           <div
             className="notification"
             onClick={() => setOpenNotification(true)}
+            style={{ position: "relative" }}
           >
             <NotificationsNoneIcon />
+            {unreadNotificationCount > 0 && (
+              <span className="notification-badge-header">
+                {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -206,6 +240,8 @@ const HeaderSide = () => {
           setFocusCommentId(commentId || null);
           setIsPostDetailOpen(true);
         }}
+        notifications={notifications}
+        setNotifications={setNotifications}
       />
 
       {isPostDetailOpen && activePost && (

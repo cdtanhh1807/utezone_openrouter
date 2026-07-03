@@ -188,13 +188,24 @@ function ProfileCatalog({ email, isOwnProfile = false }: ProfileCatalogProps) {
                   )}
                 </div>
               )}
-              {/* IMAGE */}
+              {/* MEDIA */}
               <div className="catalog-image-wrapper">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="catalog-image"
-                />
+                {/\.(mp4|mov|avi|webm|ogg)$/i.test(item.image.split("?")[0]) ? (
+                  <video
+                    src={item.image}
+                    className="catalog-image"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="catalog-image"
+                  />
+                )}
 
                 <div className="catalog-badge">📌 Sự kiện nổi bật</div>
               </div>

@@ -147,8 +147,8 @@ class MeetingService:
             "created_at": dt.now()
         }
         
-        result = await self.db.meeting_messages.insert_one(message)
-        message["_id"] = str(result.inserted_id)
+        # result = await self.db.meeting_messages.insert_one(message)
+        # message["_id"] = str(result.inserted_id)
         
         if message_type in ["file", "image", "video"]:
             message["file_url"] = FileService.get_file_url(content)

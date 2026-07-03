@@ -295,6 +295,7 @@ const ProfileDetail = ({ email }: ProfileDetailProps) => {
           profileEmail={targetEmail}
           myEmail={decodedEmail}
           initialTab={1}
+          hideBlocked={true}
         />
       )}
     </div>

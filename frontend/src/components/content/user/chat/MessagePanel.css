@@ -266,3 +266,53 @@
   color: #8e8e8e;
   user-select: none;
 }
+
+/* =======================
+   RESPONSIVE OVERRIDES
+======================= */
+
+.chat-back-btn {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  .chat-back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    color: #333;
+    transition: background-color 0.2s;
+  }
+  
+  .chat-back-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  .chat-back-btn svg {
+    font-size: 20px;
+  }
+  
+  .msg-bubble {
+    max-width: 78%;
+  }
+  
+  .msg-media {
+    max-width: 78%;
+  }
+  
+  .panel-input {
+    padding: 6px;
+    gap: 4px;
+  }
+  
+  .chat-input {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+}

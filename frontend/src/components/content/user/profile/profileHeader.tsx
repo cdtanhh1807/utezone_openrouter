@@ -17,10 +17,7 @@ import ReportModal from "../report/reportModal";
 import { useNavigate } from "react-router-dom";
 import { ToastService } from "../../../../services/ToastService";
 import SendIcon from '@mui/icons-material/Send';
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import PhoneIcon from "@mui/icons-material/Phone";
-import CakeIcon from "@mui/icons-material/Cake";
-import SchoolIcon from "@mui/icons-material/School";
+import RelationshipModal from "../relationship/listRelationship";
 
 interface ProfileHeaderProps {
   email?: string;
@@ -37,6 +34,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const [openReportModal, setOpenReportModal] = useState(false);
   const [reportEmail, setReportEmail] = useState<string | null>(null);
+  const [isRelationOpen, setIsRelationOpen] = useState(false);
+  const [relationTab, setRelationTab] = useState(0);
   const navigate = useNavigate();
   const { list, refetch } = useConversations();
 
@@ -73,27 +72,27 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
     };
   }, [openMessage]);
 
+  const fetchUser = async () => {
+    if (!currentUserEmail) {
+      console.error("❌ Không có email để fetch thông tin người dùng");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await AccountService.get_account_info(currentUserEmail);
+      setUser(res || null);
+      let ress;
+      ress = await postAPI.getByEmail(currentUserEmail);
+      setPosts(ress.post_list || []);
+    } catch (err) {
+      console.error("❌ Lỗi gọi API account_info:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchUser = async () => {
-      if (!currentUserEmail) {
-        console.error("❌ Không có email để fetch thông tin người dùng");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const res = await AccountService.get_account_info(currentUserEmail);
-        setUser(res || null);
-        let ress;
-        ress = await postAPI.getByEmail(currentUserEmail);
-        setPosts(ress.post_list || []);
-      } catch (err) {
-        console.error("❌ Lỗi gọi API account_info:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUser();
   }, [currentUserEmail]);
 
@@ -313,11 +312,23 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
 
         {/* Profile Statistics (Dạng tab chuyển đổi như mockup) */}
         <div className="profile-stats-bar">
-          <div className="stat-item">
+          <div
+            className="stat-item clickable"
+            onClick={() => {
+              setRelationTab(0);
+              setIsRelationOpen(true);
+            }}
+          >
             <span className="stat-label">Người theo dõi</span>
             <span className="stat-value">{followersCount}</span>
           </div>
-          <div className="stat-item">
+          <div
+            className="stat-item clickable"
+            onClick={() => {
+              setRelationTab(1);
+              setIsRelationOpen(true);
+            }}
+          >
             <span className="stat-label">Đang theo dõi</span>
             <span className="stat-value">{followingCount}</span>
           </div>
@@ -332,6 +343,20 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
       {isModalOpen && (
         <EditProfileModal user={user} onClose={() => setIsModalOpen(false)} />
       )}
+
+      {isRelationOpen && decodedEmail && currentUserEmail && (
+        <RelationshipModal
+          isOpen={isRelationOpen}
+          onClose={() => {
+            setIsRelationOpen(false);
+            fetchUser();
+          }}
+          profileEmail={currentUserEmail}
+          myEmail={decodedEmail}
+          initialTab={relationTab}
+          hideBlocked={true}
+        />
+      )}
       
       {openMessage && (
         <div ref={boxRef} className="chat-fixed">
@@ -339,6 +364,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ email }) => {
             onClose={() => setOpenMessage(false)}
             list={list}
             refetch={refetch}
+            initialSelectedEmail={email && email !== decodedEmail ? email : null}
           />
         </div>
       )}

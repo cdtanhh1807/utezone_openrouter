@@ -163,6 +163,10 @@
   box-sizing: border-box;
 }
 
+.btn-follow {
+  min-width: 125px;
+}
+
 /* Nút Theo dõi (Primary FB/LinkedIn Blue) */
 .btn-follow {
   background-color: #0866ff;
@@ -227,6 +231,24 @@
   font-size: 18px;
   font-weight: 700;
   color: #050505;
+}
+
+.stat-item.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.stat-item.clickable:hover .stat-label {
+  color: #0866ff;
+  text-decoration: underline;
+}
+
+.stat-item.clickable:hover .stat-value {
+  color: #0866ff;
+}
+
+.stat-item.clickable:active {
+  transform: scale(0.98);
 }
 
 /* Khu vực thông tin phụ (Intro) */
@@ -321,4 +343,72 @@
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* =========================================
+   MOBILE RESPONSIVE FOR PROFILE HEADER
+   ========================================= */
+@media screen and (max-width: 768px) {
+  .profile-cover {
+    height: 150px;
+  }
+  
+  .avatar-wrapper {
+    margin-top: -60px;
+    margin-bottom: 8px;
+  }
+  
+  .avatar-ring {
+    width: 110px;
+    height: 110px;
+  }
+  
+  .verified-badge {
+    bottom: 5px;
+    right: 5px;
+  }
+  
+  .profile-name {
+    font-size: 22px;
+  }
+  
+  .profile-headline {
+    font-size: 13.5px;
+  }
+  
+  .profile-bio {
+    font-size: 13.5px;
+    padding: 0 10px;
+  }
+
+  .action-buttons-group {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0 10px;
+  }
+
+  .btn-modern,
+  .btn-edit-profile,
+  .btn-follow,
+  .btn-unfollow,
+  .btn-message,
+  .dot-btn-message {
+    font-size: 13.5px;
+    padding: 6px 12px;
+    height: 32px;
+  }
+
+  .profile-stats-bar {
+    padding: 12px 10px;
+  }
+
+  .stat-value {
+    font-size: 15px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
 }

@@ -142,3 +142,11 @@
   background-color: #115293;
 }
 
+.notificationItem.unread {
+  background-color: #f0f7ff;
+}
+
+.notificationItem.unread:hover {
+  background-color: #e3f0fe;
+}
+

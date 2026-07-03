@@ -29,10 +29,12 @@ import AddToPhotosIcon from "@mui/icons-material/AddToPhotos";
 import ReplyComment from "./replyComment";
 import type { CommentReply } from "../../../../types/CommentReply";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
-import SummaryBox from "../summary/summaryPost";
+import { useAIStore } from "../stores/aiStore";
 import { aiAPI } from "../../../../services/AIService";
 import SaveToCollectionModal from "../profile/SaveToCollectionModal";
 import CommentVisibilityModal from "./CommentVisibilityModal";
+import { catalogService } from "../../../../services/CatalogService";
+import CreatePostCatalogModal from "../create/createPostCatalog";
 
 interface DetailPostProps {
   activePost: Post;
@@ -48,6 +50,256 @@ interface DetailPostProps {
   } | null;
 }
 
+interface PostDetailContentProps {
+  content: string;
+}
+
+const PostDetailContentComponent: React.FC<PostDetailContentProps> = ({ content }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkHeight = () => {
+      if (contentRef.current) {
+        setHasMore(contentRef.current.scrollHeight > 200);
+      }
+    };
+    checkHeight();
+    const timeout = setTimeout(checkHeight, 150);
+    return () => clearTimeout(timeout);
+  }, [content]);
+
+  return (
+    <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+      <style>{`
+        .postContentDetail {
+          width: 100%;
+          font-size: 15px;
+          color: black;
+          white-space: pre-line;
+          max-height: 200px;
+          overflow: hidden;
+          padding-right: 0px;
+          transition: all 0.3s ease;
+          box-sizing: border-box;
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 transparent;
+        }
+        .postContentDetail.expanded {
+          max-height: 200px !important;
+          overflow-y: auto !important;
+          padding-right: 6px;
+        }
+        .postContentDetail::-webkit-scrollbar {
+          width: 5px;
+          height: 5px;
+        }
+        .postContentDetail::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .postContentDetail::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 999px;
+        }
+        .postContentDetail::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+      `}</style>
+      <div
+        ref={contentRef}
+        className={`postContentDetail ${isExpanded ? "expanded" : ""}`}
+      >
+        {content}
+      </div>
+      {hasMore && (
+        <button
+          className="toggleReadMore"
+          onClick={(e) => {
+            e.stopPropagation();
+            const nextExpanded = !isExpanded;
+            setIsExpanded(nextExpanded);
+            if (!nextExpanded && contentRef.current) {
+              contentRef.current.scrollTop = 0;
+            }
+          }}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#0866ff",
+            cursor: "pointer",
+            fontWeight: "600",
+            padding: "4px 0",
+            fontSize: "14px",
+            marginTop: "4px",
+            outline: "none"
+          }}
+        >
+          {isExpanded ? "Thu gọn" : "Xem thêm"}
+        </button>
+      )}
+    </div>
+  );
+};
+
+const isVideo = (url: string) => {
+  return (
+    url.includes(".mp4") ||
+    url.includes(".webm") ||
+    url.includes(".mov") ||
+    url.includes("video")
+  );
+};
+
+const isDirectMediaUrl = (value: string) => {
+  return /^(https?:\/\/|blob:|data:)/i.test(value || "");
+};
+
+const getFileNameFromRef = (value: string) => {
+  if (!value) return "File đính kèm";
+
+  let name = value;
+
+  try {
+    const clean = value.split("?")[0];
+    name = clean.split("/").pop() || clean;
+    name = decodeURIComponent(name);
+  } catch {
+    name = value;
+  }
+
+  return name.replace(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_/i,
+    "",
+  );
+};
+
+const getFileType = (value: string) => {
+  const clean = (value || "").split("?")[0].toLowerCase();
+
+  if (/\.(mp4|webm|mov|avi|mkv)$/i.test(clean)) return "video";
+
+  if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(clean)) return "image";
+
+  return "file";
+};
+
+interface CommentAttachmentProps {
+  fileRef: string;
+  onLoad?: () => void;
+}
+
+const CommentAttachment: React.FC<CommentAttachmentProps> = ({ fileRef, onLoad }) => {
+  const [displayUrl, setDisplayUrl] = useState<string>(
+    isDirectMediaUrl(fileRef) ? fileRef : "",
+  );
+  const [loading, setLoading] = useState<boolean>(
+    !!fileRef && !isDirectMediaUrl(fileRef),
+  );
+
+  const fileName = getFileNameFromRef(fileRef);
+  const fileType = getFileType(fileRef);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadUrl = async () => {
+      if (!fileRef) return;
+
+      if (isDirectMediaUrl(fileRef)) {
+        setDisplayUrl(fileRef);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const res = await FileService.getFileUrlData(fileRef);
+
+        if (!cancelled) {
+          setDisplayUrl(res.url || "");
+        }
+      } catch (err) {
+        console.error("Không thể lấy URL file comment:", fileRef, err);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadUrl();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fileRef]);
+
+  useEffect(() => {
+    if (!loading && displayUrl && onLoad) {
+      onLoad();
+    }
+  }, [loading, displayUrl, onLoad]);
+
+  if (loading && !displayUrl) {
+    return (
+      <div className="comment-file-preview">
+        📎 <span>{fileName}</span>
+        <span style={{ marginLeft: 6, color: "#777" }}>Đang tải...</span>
+      </div>
+    );
+  }
+
+  if (!displayUrl) {
+    return (
+      <div className="comment-file-preview">
+        📎 <span>{fileName}</span>
+        <span style={{ marginLeft: 6, color: "#d32f2f" }}>
+          Không tải được file
+        </span>
+      </div>
+    );
+  }
+
+  if (fileType === "video") {
+    return (
+      <div className="comment-attachment-item">
+        <video
+          src={displayUrl}
+          className="comment-thumbnail-img"
+          controls
+          onLoadedData={onLoad}
+        />
+        <div className="comment-attachment-name">{fileName}</div>
+      </div>
+    );
+  }
+
+  if (fileType === "image") {
+    return (
+      <div className="comment-attachment-item">
+        <img
+          src={displayUrl}
+          alt={fileName || "comment-thumbnail"}
+          className="comment-thumbnail-img"
+          onLoad={onLoad}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <a
+      href={displayUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="comment-file-preview"
+    >
+      📄 <span>{fileName}</span>
+    </a>
+  );
+};
+
 const PostDetail: React.FC<DetailPostProps> = ({
   activePost,
   onClose,
@@ -58,6 +310,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
   onActivePostUpdate,
   focusComment,
 }) => {
+  const { setStatus, openSummary } = useAIStore();
   const [posts, setPosts] = useState<Post[]>([]);
   const [userInfoMap, setUserInfoMap] = useState<Record<string, UserInfo>>({});
   const [commentText, setCommentText] = useState<{ [key: string]: string }>({});
@@ -111,6 +364,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
   const [sharePost, setSharePost] = useState<Post | null>(null);
   const [reloadFlag, setReloadFlag] = useState(false);
   const hasFocusedRef = useRef(false);
+  const shouldScrollToFocusRef = useRef(!!focusCommentId);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [commentFiles, setCommentFiles] = useState<File[]>([]);
@@ -122,8 +376,10 @@ const PostDetail: React.FC<DetailPostProps> = ({
   const [originalPostCache, setOriginalPostCache] = useState<
     Record<string, Post>
   >({});
-  const [summaryText, setSummaryText] = useState("");
-  const [showSummary, setShowSummary] = useState(false);
+
+  const [openModalCatalog, setOpenModalCatalog] = useState(false);
+  const [postCatalog, setPostCatalog] = useState<Post | null>(null);
+  const [isCreateCatalog, setIsCreateCatalog] = useState(false);
 
   type PreviewFile = {
     url: string;
@@ -318,6 +574,16 @@ const PostDetail: React.FC<DetailPostProps> = ({
       });
     });
   }, [focusCommentId, activePost]);
+
+  useEffect(() => {
+    shouldScrollToFocusRef.current = !!focusCommentId;
+    if (focusCommentId) {
+      const timer = setTimeout(() => {
+        shouldScrollToFocusRef.current = false;
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [focusCommentId]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -668,26 +934,51 @@ const PostDetail: React.FC<DetailPostProps> = ({
     resetTextareaHeight();
   }, [previewUrls]);
 
+  const handleMediaLoad = () => {
+    if (scrollToCommentId) {
+      const el = document.getElementById(`comment-${scrollToCommentId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+    } else if (focusCommentId && shouldScrollToFocusRef.current) {
+      const el = document.getElementById(`comment-${focusCommentId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } else if (commentListRef.current) {
+      const container = commentListRef.current;
+      const isNearBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+      if (isNearBottom) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     if (!scrollToCommentId) return;
 
-    const timeout = setTimeout(() => {
-      const el = document.getElementById(`comment-${scrollToCommentId}`);
+    const el = document.getElementById(`comment-${scrollToCommentId}`);
+    if (!el) return; // Đợi cho đến khi phần tử được render (sau khi parent cập nhật activePost)
 
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        el.classList.add("highlight-new");
+    const timeout = setTimeout(() => {
+      const currentEl = document.getElementById(`comment-${scrollToCommentId}`);
+      if (currentEl) {
+        currentEl.scrollIntoView({ behavior: "smooth", block: "end" });
+        currentEl.classList.add("highlight-new");
 
         setTimeout(() => {
-          el.classList.remove("highlight-new");
+          currentEl.classList.remove("highlight-new");
         }, 2000);
       }
-
       setScrollToCommentId(null);
-    }, 150); // 👈 tăng delay
+    }, 100);
 
     return () => clearTimeout(timeout);
-  }, [scrollToCommentId, posts]);
+  }, [scrollToCommentId, activePost, posts]);
 
   useEffect(() => {
     const updated = posts.find((p) => p._id === activePost._id);
@@ -901,28 +1192,44 @@ const PostDetail: React.FC<DetailPostProps> = ({
     }));
 
     try {
-      // 1️⃣ Gọi API AI để tạo summary
-      await aiAPI.summarizePost(post._id);
+      let summary = post.ai_summary;
 
-      // 2️⃣ Lấy lại post mới nhất
-      const res = await postAPI.getById(post._id);
-      const data = res.post;
+      // 1️⃣ Gọi API AI để tạo summary nếu chưa có
+      if (!summary) {
+        setStatus("summarizing");
+        await aiAPI.summarizePost(post._id);
 
-      // 3️⃣ Cache post
-      setOriginalPostCache((prev) => ({
-        ...prev,
-        [post._id]: data,
-      }));
+        // 2️⃣ Lấy lại post mới nhất
+        const res = await postAPI.getById(post._id);
+        const data = res.post || res;
+        summary = data.ai_summary;
 
-      console.log("AI Summary:", data.ai_summary);
+        // 3️⃣ Cache post
+        setOriginalPostCache((prev) => ({
+          ...prev,
+          [post._id]: data,
+        }));
+      }
 
-      // 4️⃣ Hiển thị summary
-      setSummaryText(data.ai_summary || "Không có tóm tắt.");
-      setShowSummary(true);
+      console.log("AI Summary:", summary);
+
+      // 4️⃣ Gọi store toàn cục để mở hộp tóm tắt
+      openSummary(summary || "Không có tóm tắt.", post._id);
+
+      if (!post.ai_summary) {
+        setStatus("success");
+        setTimeout(() => {
+          setStatus("idle");
+        }, 2000);
+      }
+
+      // 5️⃣ Đóng modal chi tiết bài viết
+      onClose();
     } catch (err) {
       console.error("AI summary error:", err);
-      setSummaryText("Không thể tóm tắt bài đăng.");
-      setShowSummary(true);
+      openSummary("Không thể tóm tắt bài đăng.", post._id);
+      setStatus("idle");
+      onClose();
     }
   };
 
@@ -945,6 +1252,20 @@ const PostDetail: React.FC<DetailPostProps> = ({
     setSelectedPostId(post._id);
     setOpenSaveModal(true);
     ToastService.success("Chọn bộ sưu tập để lưu bài viết");
+  };
+
+  const handleCatalog = async (post: Post) => {
+    setPostMenuOpen((prev) => ({ ...prev, [post._id]: false }));
+    setOpenModalCatalog(true);
+    setPostCatalog(post);
+
+    const res = await catalogService.findPostCatalog(post._id);
+    console.log("res catalogggggg", res);
+    if (res.post_catalog) {
+      setIsCreateCatalog(true);
+    } else {
+      setIsCreateCatalog(false);
+    }
   };
   const handleReply = (comment: any) => {
     if (!activePost?._id) return;
@@ -1110,149 +1431,6 @@ const PostDetail: React.FC<DetailPostProps> = ({
     });
   };
 
-  const isVideo = (url: string) => {
-    return (
-      url.includes(".mp4") ||
-      url.includes(".webm") ||
-      url.includes(".mov") ||
-      url.includes("video")
-    );
-  };
-  const isDirectMediaUrl = (value: string) => {
-    return /^(https?:\/\/|blob:|data:)/i.test(value || "");
-  };
-
-  const getFileNameFromRef = (value: string) => {
-    if (!value) return "File đính kèm";
-
-    let name = value;
-
-    try {
-      const clean = value.split("?")[0];
-      name = clean.split("/").pop() || clean;
-      name = decodeURIComponent(name);
-    } catch {
-      name = value;
-    }
-
-    // Bỏ UUID prefix do backend thêm vào file_id:
-    // 9247d9aa-b210-4736-9de0-82cd75206ccf_chu_ky.png
-    // -> chu_ky.png
-    return name.replace(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_/i,
-      "",
-    );
-  };
-
-  const getFileType = (value: string) => {
-    const clean = (value || "").split("?")[0].toLowerCase();
-
-    if (/\.(mp4|webm|mov|avi|mkv)$/i.test(clean)) return "video";
-
-    if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(clean)) return "image";
-
-    return "file";
-  };
-
-  const CommentAttachment: React.FC<{ fileRef: string }> = ({ fileRef }) => {
-    const [displayUrl, setDisplayUrl] = useState<string>(
-      isDirectMediaUrl(fileRef) ? fileRef : "",
-    );
-    const [loading, setLoading] = useState<boolean>(
-      !!fileRef && !isDirectMediaUrl(fileRef),
-    );
-
-    const fileName = getFileNameFromRef(fileRef);
-    const fileType = getFileType(fileRef);
-
-    useEffect(() => {
-      let cancelled = false;
-
-      const loadUrl = async () => {
-        if (!fileRef) return;
-
-        if (isDirectMediaUrl(fileRef)) {
-          setDisplayUrl(fileRef);
-          setLoading(false);
-          return;
-        }
-
-        try {
-          setLoading(true);
-          const res = await FileService.getFileUrlData(fileRef);
-
-          if (!cancelled) {
-            setDisplayUrl(res.url || "");
-          }
-        } catch (err) {
-          console.error("Không thể lấy URL file comment:", fileRef, err);
-        } finally {
-          if (!cancelled) {
-            setLoading(false);
-          }
-        }
-      };
-
-      loadUrl();
-
-      return () => {
-        cancelled = true;
-      };
-    }, [fileRef]);
-
-    if (loading && !displayUrl) {
-      return (
-        <div className="comment-file-preview">
-          📎 <span>{fileName}</span>
-          <span style={{ marginLeft: 6, color: "#777" }}>Đang tải...</span>
-        </div>
-      );
-    }
-
-    if (!displayUrl) {
-      return (
-        <div className="comment-file-preview">
-          📎 <span>{fileName}</span>
-          <span style={{ marginLeft: 6, color: "#d32f2f" }}>
-            Không tải được file
-          </span>
-        </div>
-      );
-    }
-
-    if (fileType === "video") {
-      return (
-        <div className="comment-attachment-item">
-          <video src={displayUrl} className="comment-thumbnail-img" controls />
-          <div className="comment-attachment-name">{fileName}</div>
-        </div>
-      );
-    }
-
-    if (fileType === "image") {
-      return (
-        <div className="comment-attachment-item">
-          <img
-            src={displayUrl}
-            alt={fileName || "comment-thumbnail"}
-            className="comment-thumbnail-img"
-          />
-          <div className="comment-attachment-name">{fileName}</div>
-        </div>
-      );
-    }
-
-    return (
-      <a
-        href={displayUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="comment-file-preview"
-      >
-        📄 <span>{fileName}</span>
-      </a>
-    );
-  };
 
   function formatTimeVN(dateString: string) {
     const utcDate = new Date(dateString + "Z");
@@ -1553,6 +1731,17 @@ const PostDetail: React.FC<DetailPostProps> = ({
                             >
                               ✨ Tóm tắt bài viết
                             </div>
+
+                            {currentUserRole === "Moderator" && (
+                              <div
+                                className="menuItem delete"
+                                onClick={() => {
+                                  handleCatalog(activePost);
+                                }}
+                              >
+                                🛑 Ghim sự kiện
+                              </div>
+                            )}
                           </>
                         ) : (
                           <>
@@ -1577,6 +1766,17 @@ const PostDetail: React.FC<DetailPostProps> = ({
                                 onClick={() => handleRemove(activePost)}
                               >
                                 🛑 Gỡ bài viết
+                              </div>
+                            )}
+
+                            {currentUserRole === "Moderator" && userInfoMap[activePost.createdBy]?.role !== "Moderator" && (
+                              <div
+                                className="menuItem delete"
+                                onClick={() => {
+                                  handleCatalog(activePost);
+                                }}
+                              >
+                                🛑 Ghim sự kiện
                               </div>
                             )}
 
@@ -1611,26 +1811,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
                 <span>{activePost.title}</span>
               </div>
 
-              <div className="postContent">
-                <p>
-                  {expandedPosts[activePost._id]
-                    ? activePost.content
-                    : truncateWords(activePost.content, 100)}
-                </p>
-                {activePost.content.split(" ").length > 100 && (
-                  <button
-                    className="toggleReadMore"
-                    onClick={() =>
-                      setExpandedPosts((prev) => ({
-                        ...prev,
-                        [activePost._id]: !prev[activePost._id],
-                      }))
-                    }
-                  >
-                    {expandedPosts[activePost._id] ? "Thu gọn" : "Xem thêm"}
-                  </button>
-                )}
-              </div>
+              <PostDetailContentComponent content={activePost.content} />
               <div className="iconBlock">
                 <div className="leftIcon">
                   <div
@@ -1734,8 +1915,8 @@ const PostDetail: React.FC<DetailPostProps> = ({
                 </div>
               </div>
 
-              <div className="modalComments">
-                <div className="comment-list" ref={commentListRef}>
+              <div className="modalComments" ref={commentListRef}>
+                <div className="comment-list">
                   {activePost.comments && activePost.comments.length > 0 ? (
                     activePost.comments
                       ?.filter((comment) => comment.statusComment !== "hidden")
@@ -1892,6 +2073,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
                                       <CommentAttachment
                                         key={`${comment.commentId}-${fileRef}-${index}`}
                                         fileRef={fileRef}
+                                        onLoad={handleMediaLoad}
                                       />
                                     ),
                                   )}
@@ -2453,12 +2635,7 @@ const PostDetail: React.FC<DetailPostProps> = ({
         }}
       />
 
-      {showSummary && (
-        <SummaryBox
-          summary={summaryText}
-          onClose={() => setShowSummary(false)}
-        />
-      )}
+
 
       {openSaveModal && selectedPostId && (
         <SaveToCollectionModal
@@ -2476,6 +2653,15 @@ const PostDetail: React.FC<DetailPostProps> = ({
         onChange={setCommentVisibility}
         onClose={() => setIsRoleEditModalOpen(false)}
         onSave={handleSaveCommentVisibility}
+      />
+      <CreatePostCatalogModal
+        open={openModalCatalog}
+        onClose={() => setOpenModalCatalog(false)}
+        postId={postCatalog?._id || ""}
+        isCreateCatalog={isCreateCatalog}
+        onSuccess={() => {
+          console.log("reload catalog");
+        }}
       />
     </div>
   );

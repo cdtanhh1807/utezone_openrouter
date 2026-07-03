@@ -358,7 +358,7 @@ const LeftSide = () => {
                     className="menuItem"
                     onClick={() => setOpenReportModal(true)}
                   >
-                    Lịch sử báo cáo
+                    Lịch sử tố cáo
                   </div>
                   {/* <div className="menuItem">Quyền riêng tư và bảo mật</div> */}
                   <div
@@ -412,6 +412,7 @@ const LeftSide = () => {
           profileEmail={currentUserEmail}
           myEmail={currentUserEmail}
           initialTab={modalTab}
+          hideBlocked={true}
         />
       )}
       <ReportHistoryModal

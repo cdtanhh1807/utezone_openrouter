@@ -7,9 +7,11 @@ import "./MessagePanel.css";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 type Props = {
   otherEmail: string;
+  onBack?: () => void;
 };
 
 type PreviewItem = {
@@ -17,7 +19,33 @@ type PreviewItem = {
   url: string;
 };
 
-const MessagePanel: React.FC<Props> = ({ otherEmail }) => {
+/* ---------- HÀM FORMAT THỜI GIAN CHO CHAT (giờ:phút ngày/tháng/năm, KHÔNG giây) ---------- */
+const formatChatTime = (dateString?: string | null) => {
+  if (!dateString) return "";
+
+  let normalized = dateString;
+
+  if (!/[zZ]|[+-]\d{2}:\d{2}$/.test(normalized)) {
+    normalized += "Z";
+  }
+
+  const date = new Date(normalized);
+
+  return date
+    .toLocaleString("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh",
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      // Không có second
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+    .replace(",", "");
+};
+
+const MessagePanel: React.FC<Props> = ({ otherEmail, onBack }) => {
   const { email: me } = useAuth();
   const { messages, sendMessage } = useChat(otherEmail);
 
@@ -101,8 +129,6 @@ const MessagePanel: React.FC<Props> = ({ otherEmail }) => {
         ),
       );
 
-      // ❗ QUAN TRỌNG: KHÔNG resolve ở đây nữa
-      // gửi raw id, backend WS/API sẽ trả URL chuẩn
       await sendMessage(text, fileIds, mediaIds);
       console.log("Message sent with media:", { text, fileIds, mediaIds });
 
@@ -166,20 +192,15 @@ const MessagePanel: React.FC<Props> = ({ otherEmail }) => {
     return currentTime - previousTime >= thresholdMinutes * 60 * 1000;
   };
 
-  const formatMessageTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
-
   return (
     <div className={`panel ${anim ? "panel-animate" : ""}`}>
       {/* HEADER */}
       <div className="panel-header">
+        {onBack && (
+          <button className="chat-back-btn" onClick={onBack}>
+            <ArrowBackIcon />
+          </button>
+        )}
         <img
           className="postInfoImg"
           src={userInfo?.avatar}
@@ -202,7 +223,7 @@ const MessagePanel: React.FC<Props> = ({ otherEmail }) => {
             <React.Fragment key={m.id || i}>
               {showTimestamp && (
                 <div className="msg-timestamp">
-                  {formatMessageTime(m.created_at)}
+                  {formatChatTime(m.created_at)}
                 </div>
               )}
 

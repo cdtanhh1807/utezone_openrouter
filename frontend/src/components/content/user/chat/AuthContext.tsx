@@ -17,7 +17,7 @@ const getAuth = (): Auth => {
 const AuthContext = createContext<Auth>(getAuth());
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const auth = getAuth();
+  const auth = React.useMemo(() => getAuth(), []);
   return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
 };
 

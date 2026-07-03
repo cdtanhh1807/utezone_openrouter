@@ -401,7 +401,7 @@ Ngữ cảnh ảnh: {page_label}
             if message_id:
                 message_query["message_id"] = message_id
 
-            message = await self.db.messages.find_one(message_query)
+            message = await self.db.chat_room_messages.find_one(message_query)
 
             if not message:
                 raise ValueError("Không tìm thấy message tài liệu trong phòng chat")

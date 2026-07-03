@@ -155,7 +155,7 @@ const PlayHighlightModal: React.FC<PlayHighlightModalProps> = ({
       <div className="highlight-play-container">
         {/* Progress indicators */}
         <div className="highlight-progress-bar-row">
-          {stories.map((_, index) => {
+          {stories.map((_: any, index: number) => {
             let width = "0%";
             if (index < currentIndex) width = "100%";
             if (index === currentIndex) width = `${progress}%`;

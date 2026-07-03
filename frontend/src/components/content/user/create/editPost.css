@@ -227,7 +227,7 @@
   font-weight: 600;
   color: #1e293b;
   overflow-y: auto;
-  min-height: 48px;
+  min-height: 150px;
   transition: all 0.2s ease;
 }
 
