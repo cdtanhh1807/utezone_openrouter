@@ -60,7 +60,7 @@ const getAuthInfo = (): { role: Role } | null => {
 const RootRedirect = () => {
   const auth = getAuthInfo();
 
-  if (!auth) return <Navigate to="/welcome" replace />;
+  if (!auth) return <Navigate to="/login" replace />;
 
   if (auth.role === "Administrator") {
     return <Navigate to="/admin" replace />;
@@ -85,7 +85,7 @@ const GuestGuard = ({ children }: { children: JSX.Element }) => {
 const UserOnlyGuard = ({ children }: { children: JSX.Element }) => {
   const auth = getAuthInfo();
 
-  if (!auth) return <Navigate to="/welcome" replace />;
+  if (!auth) return <Navigate to="/login" replace />;
 
   if (auth.role === "Administrator") {
     return <Navigate to="/admin" replace />;
@@ -97,7 +97,7 @@ const UserOnlyGuard = ({ children }: { children: JSX.Element }) => {
 const AdminOnlyGuard = ({ children }: { children: JSX.Element }) => {
   const auth = getAuthInfo();
 
-  if (!auth) return <Navigate to="/welcome" replace />;
+  if (!auth) return <Navigate to="/login" replace />;
 
   if (auth.role !== "Administrator") {
     return <Navigate to="/home" replace />;
