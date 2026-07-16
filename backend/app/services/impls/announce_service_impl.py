@@ -27,7 +27,10 @@ class AnnounceServiceImpl(IAnnounceService):
         list_rs: List[Announce] = []
         if len(dic_ls) > 0:
             for dic_ann in dic_ls:
-                ann: Announce = Announce(**bson_to_dict(dic_ann))
+                cleaned_dic = bson_to_dict(dic_ann)
+                if cleaned_dic and "id" in cleaned_dic:
+                    del cleaned_dic["id"]
+                ann: Announce = Announce(**cleaned_dic)
                 list_rs.append(ann)
         return GetAllAnnounceResponse(announce_list=list_rs)
     
@@ -37,5 +40,17 @@ class AnnounceServiceImpl(IAnnounceService):
                                             isRead=False, createdAt=datetime.now())
         dic_announce_insert = await AnnounceRepository.insert(announce.model_dump())
         if dic_announce_insert:
-            return SendAnnounceResponse(announce=Announce(**bson_to_dict(dic_announce_insert)))
+            cleaned_dic = bson_to_dict(dic_announce_insert)
+            if cleaned_dic and "id" in cleaned_dic:
+                del cleaned_dic["id"]
+            return SendAnnounceResponse(announce=Announce(**cleaned_dic))
         else: None
+
+    async def mark_as_read(self, announce_id: str) -> Optional[dict]:
+        res = await AnnounceRepository.mark_as_read(announce_id)
+        if res:
+            cleaned_dic = bson_to_dict(res)
+            if cleaned_dic and "id" in cleaned_dic:
+                del cleaned_dic["id"]
+            return cleaned_dic
+        return None

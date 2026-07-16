@@ -26,3 +26,14 @@ async def list_bans(
     service: IAnnounceService = Depends(get_announce_service)
 ):
     return await service.add(req)
+
+@router.post("/mark_read/{announce_id}")
+async def mark_as_read(
+    announce_id: str,
+    current_user: dict = Depends(get_current_user),
+    service: IAnnounceService = Depends(get_announce_service)
+):
+    res = await service.mark_as_read(announce_id)
+    if not res:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"message": "Notification marked as read", "announce": res}

@@ -15,3 +15,13 @@ class AnnounceRepository:
         cursor = AnnounceRepository.collection.find({"receiverEmail": email})
         docs = await cursor.to_list(length=None)
         return docs
+
+    @staticmethod
+    async def mark_as_read(announce_id: str) -> dict:
+        from bson import ObjectId
+        await AnnounceRepository.collection.update_one(
+            {"_id": ObjectId(announce_id)},
+            {"$set": {"isRead": True}}
+        )
+        new = await AnnounceRepository.collection.find_one({"_id": ObjectId(announce_id)})
+        return new

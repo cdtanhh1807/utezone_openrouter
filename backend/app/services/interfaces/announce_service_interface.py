@@ -15,3 +15,7 @@ class IAnnounceService(ABC):
     @abstractmethod
     async def add(self, req: SendAnnounceRequest) -> Optional[SendAnnounceResponse]:
         pass
+
+    @abstractmethod
+    async def mark_as_read(self, announce_id: str) -> Optional[dict]:
+        pass
